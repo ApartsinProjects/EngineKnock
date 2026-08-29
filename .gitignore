@@ -2,7 +2,10 @@
 *.pptx
 *Kickoff*.pdf
 *_for_*.pdf
-*.pdf
+/*.pdf
+# ...but DO publish the paper's own PDF
+!paper/*.pdf
+!docs/*.pdf
 
 # Data (large, external datasets — not ours to redistribute)
 data/
