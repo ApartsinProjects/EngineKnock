@@ -1,0 +1,22 @@
+{
+  "bearing": {
+    "source": {
+      "uncond": 0.6092,
+      "cond": 0.6488
+    },
+    "target": {
+      "uncond": 0.6228,
+      "cond": 0.6452
+    }
+  },
+  "valve": {
+    "source": {
+      "uncond": 0.69,
+      "cond": 0.734
+    },
+    "target": {
+      "uncond": 0.3764,
+      "cond": 0.632
+    }
+  }
+}
