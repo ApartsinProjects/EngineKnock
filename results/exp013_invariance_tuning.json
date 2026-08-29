@@ -1,0 +1,34 @@
+{
+  "PCA-rank16": {
+    "matched": 0.941,
+    "lobo": 0.824
+  },
+  "PCA-rank32": {
+    "matched": 0.959,
+    "lobo": 0.835
+  },
+  "PCA-rank64": {
+    "matched": 0.964,
+    "lobo": 0.836
+  },
+  "PCA-rank128": {
+    "matched": 0.965,
+    "lobo": 0.836
+  },
+  "PCA-rank256": {
+    "matched": 0.967,
+    "lobo": 0.837
+  },
+  "AE-lat16": {
+    "matched": 0.963,
+    "lobo": 0.777
+  },
+  "AE-lat32": {
+    "matched": 0.961,
+    "lobo": 0.788
+  },
+  "AE-lat64": {
+    "matched": 0.961,
+    "lobo": 0.806
+  }
+}

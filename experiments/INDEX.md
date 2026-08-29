@@ -14,3 +14,4 @@
 | 010 | 2026-08-29 | MIMII-DG breadth (discrete + continuous attribute conditioning) | completed (positive) |
 | 011 | 2026-08-29 | Consolidated one-pass eval (CIs, pAUC, per-band, Wilcoxon) | completed (positive) |
 | 012 | 2026-08-29 | Ablations: k-sweep + discrete-bin vs continuous | completed (positive) |
+| 013 | 2026-08-29 | Invariance-arm tuning sweep (OASSL strawman defense) | completed (positive) |

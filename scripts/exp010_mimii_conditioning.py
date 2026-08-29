@@ -112,7 +112,9 @@ def run_machine(machine):
 
 def main():
     all_res = {}
-    for machine in ["bearing", "valve"]:
+    machines = [m for m in ["bearing", "valve", "fan", "gearbox", "slider"]
+                if os.path.exists(os.path.join(DATA, f"{m}.zip"))]
+    for machine in machines:
         all_res[machine] = run_machine(machine)
     json.dump(all_res, open(os.path.join(OUT, "exp010_mimii_results.json"), "w"), indent=2)
     print("\nSummary (target-domain = the domain-shifted / unseen-attribute case):")

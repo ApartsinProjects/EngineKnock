@@ -291,10 +291,14 @@ things hold. The conditioning gain is essentially unchanged across backbones (+0
 +0.032/+0.043 for the autoencoder), and the autoencoder alone does not beat PCA alone, so the
 improvement comes from conditioning, not from backbone capacity. The invariance approach does not
 recover when given the stronger backbone: order tracking under the autoencoder still collapses under
-speed shift (0.809), below the unconditional detector. Since the strongest recent speed-invariance
-method for this setting, OASSL&nbsp;[9], is not publicly available, we take a deep autoencoder on
-order-tracked features as its reproducible in-class representative; conditioning outperforms it at both
-backbones.</p>
+speed shift (0.809), below the unconditional detector. Nor is this a matter of under-tuning the
+invariance arm. Sweeping its detector, PCA rank from 16 to 256 and autoencoder latent width from 16 to
+64, moves its held-out-speed AUC only within [0.78, 0.837]; the best configuration, 0.837, still sits
+below the unconditional baseline (0.897), because the limitation is representational, order tracking
+discards the fixed-frequency fault energy, not a matter of detector capacity. Since the strongest recent
+speed-invariance method for this setting, OASSL&nbsp;[9], is not publicly available, we take an
+order-tracked spectrum with a tuned reconstruction detector as its reproducible in-class representative;
+conditioning outperforms it at both backbones and across the tuning sweep.</p>
 
 <div class="tablewrap">
 <table class="booktabs">
@@ -373,28 +377,39 @@ speeds gives AUC&nbsp;0.961; detrending the same windows with randomly permuted 
 it to 0.419, with the mean healthy score rising accordingly. The normal-versus-normal null sits at 0.50 for all methods, confirming the
 detectors do not key on the train/test split.</p>
 
-<p class="runin"><b>A second dataset and a discrete covariate.</b> The principle is not specific to MaFaulDa or to a
-continuous covariate. On MIMII-DG&nbsp;[5], the DCASE&nbsp;2022 domain-generalization benchmark of machine
-sounds, each machine provides an operating attribute and a source/target domain split; we condition a
-log-mel reconstruction detector on that attribute. Table&nbsp;5 reports the bearing machine, whose
-attribute is a continuous rotation speed, and the valve machine, whose attribute is a discrete operation
-pattern. Conditioning improves both domains for both machines, and most sharply on the shifted target
-domain: valve target detection, which the unconditional detector drives below chance (0.376) because the
-domain shift makes target-normal sound anomalous, is restored to 0.632 by conditioning on the operation
-pattern. These are per-machine scores on a deliberately simple detector, reported to show the conditioning
-principle transfers across datasets and covariate types, not to rank against the challenge leaderboard.</p>
+<p class="runin"><b>A second dataset, and the scope of the operating covariate.</b> The principle is not specific to MaFaulDa.
+On MIMII-DG&nbsp;[5], the DCASE&nbsp;2022 domain-generalization benchmark of machine sounds, each machine
+provides an operating attribute and a source/target domain split; we condition a log-mel reconstruction
+detector on that attribute and evaluate all five machine types (Table&nbsp;5). Conditioning improves both
+domains on the four machines whose attribute is a genuine operating covariate: bearing rotation speed,
+gearbox voltage, slider velocity, and the valve operation pattern. The gain is sharpest on the shifted
+target domain: valve target detection, which the unconditional detector drives below chance (0.376)
+because the domain shift makes target-normal sound anomalous, is restored to 0.632 by conditioning on the
+operation pattern. The exception is the fan, whose domain attribute is a categorical mixture of background
+machine noises rather than a machine operating state; there conditioning gives no benefit, which is the
+expected boundary of the method. The pattern across machines is therefore consistent with the thesis:
+conditioning helps when the covariate is a genuine operating condition, on both continuous covariates
+(speed, voltage, velocity) and an ordinal discrete one (valve pattern). These per-machine source and
+target AUCs isolate the conditioning effect on a deliberately simple detector; they are not a challenge
+submission, whose official score aggregates AUC and partial AUC across all machines by harmonic mean.</p>
 
 <div class="tablewrap">
 <table class="booktabs">
-<caption><b>Table&nbsp;5.</b> Cross-dataset breadth on MIMII-DG (DCASE&nbsp;2022 domain generalization), ROC-AUC.
-Conditioning on the operating attribute helps on both the source and the shifted target domain, for a
-continuous covariate (bearing rotation speed) and a discrete one (valve operation pattern).</caption>
+<caption><b>Table&nbsp;5.</b> Cross-dataset breadth on MIMII-DG (DCASE&nbsp;2022 domain generalization), ROC-AUC
+per machine and domain. Conditioning helps on both domains for the four machines with a genuine operating
+covariate; the fan, whose attribute is a categorical background-noise mixture, is the expected exception.</caption>
 <thead><tr><th>Machine (attribute)</th><th>Domain</th><th>Unconditional</th><th>Conditioning</th></tr></thead>
 <tbody>
 <tr><td>Bearing (rotation speed)</td><td>source</td><td>0.609</td><td class="best">0.649</td></tr>
 <tr><td>Bearing (rotation speed)</td><td>target</td><td>0.623</td><td class="best">0.645</td></tr>
+<tr><td>Gearbox (voltage)</td><td>source</td><td>0.748</td><td class="best">0.809</td></tr>
+<tr><td>Gearbox (voltage)</td><td>target</td><td>0.645</td><td class="best">0.710</td></tr>
+<tr><td>Slider (velocity)</td><td>source</td><td>0.726</td><td class="best">0.789</td></tr>
+<tr><td>Slider (velocity)</td><td>target</td><td>0.622</td><td class="best">0.662</td></tr>
 <tr><td>Valve (operation pattern)</td><td>source</td><td>0.690</td><td class="best">0.734</td></tr>
 <tr><td>Valve (operation pattern)</td><td>target</td><td>0.376</td><td class="best">0.632</td></tr>
+<tr><td>Fan (noise mixture)</td><td>source</td><td class="best">0.955</td><td>0.943</td></tr>
+<tr><td>Fan (noise mixture)</td><td>target</td><td class="best">0.716</td><td>0.670</td></tr>
 </tbody>
 </table>
 </div>

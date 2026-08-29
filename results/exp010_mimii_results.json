@@ -18,5 +18,35 @@
       "uncond": 0.3764,
       "cond": 0.632
     }
+  },
+  "fan": {
+    "source": {
+      "uncond": 0.9552,
+      "cond": 0.9432
+    },
+    "target": {
+      "uncond": 0.7156,
+      "cond": 0.6696
+    }
+  },
+  "gearbox": {
+    "source": {
+      "uncond": 0.748,
+      "cond": 0.8092
+    },
+    "target": {
+      "uncond": 0.6452,
+      "cond": 0.7104
+    }
+  },
+  "slider": {
+    "source": {
+      "uncond": 0.7256,
+      "cond": 0.7888
+    },
+    "target": {
+      "uncond": 0.6224,
+      "cond": 0.6624
+    }
   }
 }
