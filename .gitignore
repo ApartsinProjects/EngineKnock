@@ -1,0 +1,23 @@
+# Confidential source material — never publish
+*.pptx
+*Kickoff*.pdf
+*_for_*.pdf
+*.pdf
+
+# Data (large, external datasets — not ours to redistribute)
+data/
+*.zip
+
+# Large build/derived artifacts
+results/*.npz
+results/*.pdf
+results/*.log
+paper/_*.png
+paper/_*.pdf
+paper/_*.html
+paper/_*.docx
+
+# Scratch / caches
+__pycache__/
+*.pyc
+.DS_Store

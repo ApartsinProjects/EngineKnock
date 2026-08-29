@@ -1,0 +1,34 @@
+{
+  "underhang-axial-uncond": {
+    "matched": 0.9570296345926034,
+    "lobo": 0.8969038568897708
+  },
+  "overhang-axial-uncond": {
+    "matched": 0.7261762449296755,
+    "lobo": 0.5905380914716214
+  },
+  "microphone-uncond": {
+    "matched": 0.8726055408680279,
+    "lobo": 0.6583249789562986
+  },
+  "FUSED-uncond": {
+    "matched": 0.9396782955208277,
+    "lobo": 0.8303141140385882
+  },
+  "underhang-axial-cond": {
+    "matched": 0.9901803488130255,
+    "lobo": 0.9371758348352598
+  },
+  "overhang-axial-cond": {
+    "matched": 0.8885213452969749,
+    "lobo": 0.9517146295725462
+  },
+  "microphone-cond": {
+    "matched": 0.9364763836923378,
+    "lobo": 0.715670492850644
+  },
+  "FUSED-cond": {
+    "matched": 0.9916189399021623,
+    "lobo": 0.9591109020294483
+  }
+}

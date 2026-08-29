@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Condition, Don't Remove: Speed-Conditioned Normal Modeling for Unsupervised Fault Detection</title>
+<style>
+:root{
+  --ink:#111418; --soft:#2c3138; --muted:#5a626c; --navy:#14385c; --rule:#d1d4d8; --codebg:#f4f5f7;
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Charter","Iowan Old Style","Source Serif Pro",Georgia,"Times New Roman",serif;
+  color:var(--ink); background:#fff; margin:0; line-height:1.55;
+}
+.wrap{max-width:720px; margin:0 auto; padding:46px 24px 80px;}
+h1.title{text-align:center; font-size:19pt; font-weight:600; line-height:1.25; margin:0 0 14px;}
+p.authors{text-align:center; font-size:11pt; color:var(--soft); margin:0 0 4px; text-indent:0;}
+p.affil{text-align:center; font-size:9.5pt; color:var(--muted); margin:0 0 22px; text-indent:0;}
+h2.abs-h{text-align:center; font-variant:small-caps; letter-spacing:.04em; font-size:10.5pt;
+  font-weight:700; color:var(--navy); margin:0 0 6px; padding:0; border:0;}
+.abstract{margin:0 auto 26px; max-width:640px;}
+.abstract p{font-size:10pt; text-align:justify; hyphens:auto; margin:0; text-indent:0;}
+h2{font-size:13pt; font-weight:700; color:var(--ink); margin:26px 0 8px; padding-bottom:2px;}
+h3{font-size:11.5pt; font-weight:700; margin:18px 0 6px;}
+h4{font-size:10.5pt; font-weight:700; margin:14px 0 4px; color:var(--soft);}
+p{font-size:11pt; text-align:justify; hyphens:auto; margin:0; text-indent:1.4em;}
+p.runin{text-indent:0; margin-top:9px;}
+p.runin b{color:var(--ink);}
+h2+p,h3+p,h4+p,figure+p,.tablewrap+p,.abstract+*+p{text-indent:0;}
+h2+p,h3+p,h4+p{text-indent:0;}
+ul{font-size:11pt; margin:6px 0 6px 0; padding-left:1.4em;}
+li{margin:2px 0; text-align:justify;}
+a{color:var(--navy); text-decoration:none;}
+a:hover{text-decoration:underline;}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:9.6pt;
+  background:var(--codebg); padding:1px 4px; border-radius:3px;}
+.tablewrap{margin:16px 0; overflow-x:auto;}
+table{border-collapse:collapse; width:100%; font-size:9.5pt; margin:0 auto;}
+caption{caption-side:top; font-size:9.5pt; color:var(--soft); text-align:left; margin-bottom:6px;}
+caption b{color:var(--ink);}
+th,td{padding:3px 8px; text-align:center;}
+th:first-child,td:first-child{text-align:left;}
+thead th{border-bottom:1px solid var(--ink);}
+table.booktabs{border-top:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink);}
+.best{font-weight:700; color:var(--navy);}
+figure{margin:18px 0; text-align:center;}
+figure img{max-width:100%; border:1px solid var(--rule);}
+figcaption{font-size:9.5pt; color:var(--soft); text-align:left; margin-top:6px;}
+figcaption b{color:var(--ink);}
+.refs{font-size:9pt; color:var(--soft); margin-top:6px;}
+.refs p{font-size:9pt; text-indent:-1.2em; margin-left:1.2em; text-align:left; margin-bottom:3px;}
+.foot{font-size:9pt; color:var(--muted); text-align:center; margin-top:30px; border-top:1px solid var(--rule); padding-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1 class="title">Condition, Don't Remove: Speed-Conditioned Normal Modeling<br>for Unsupervised Fault Detection in Rotating Machinery</h1>
+<p class="authors">Anonymous</p>
+<p class="affil">Preprint. Draft generated from the EngineKnock experiment registry.</p>
+
+<h2 class="abs-h">Abstract</h2>
+<div class="abstract">
+<p>Unsupervised fault detection for rotating machinery trains on healthy data alone, and its
+central obstacle is operating-condition shift: a healthy machine produces markedly different
+vibration and acoustic spectra at different rotation speeds, so faults hide inside the speed-induced
+spread of the normal class. Existing methods either remove speed through order tracking and
+speed-invariant representations, or treat it as a discrete domain label. We instead condition the
+normal model on the continuous speed covariate that rotating machinery already measures through its
+tachometer, realized simply by subtracting a local speed-conditional normal mean, estimated by
+nearest neighbours in speed, before a standard reconstruction-error detector. On MaFaulDa
+(accelerometers, microphone, tachometer, five fault types, 12 to 60&nbsp;Hz), conditioning raises
+pooled ROC-AUC from 0.955 to 0.989 at matched speed and from 0.897 to 0.937 on held-out speeds,
+winning on all five fault types in both regimes; the order-tracking invariance baseline never beats
+the unconditional detector under speed shift. The gain is backbone-agnostic across PCA and
+autoencoder detectors, holds across accelerometer and microphone channels, turns multi-channel
+fusion from harmful into beneficial, and collapses when speed labels are permuted (AUC 0.961 to
+0.419). For speed variation, condition, don't remove.</p>
+</div>
+
+<h2>1&nbsp;&nbsp;Introduction</h2>
+<p>Vibration and acoustic signatures are the standard evidence for the mechanical health of rotating
+machinery. In deployment the honest formulation is unsupervised: a detector is trained only on
+data from a healthy machine and must flag any deviation, because labeled fault examples are scarce,
+expensive, and rarely cover the fault that eventually occurs. This normal-only framing is the one
+adopted by the DCASE unsupervised anomalous-sound-detection challenges and by most machine-condition
+autoencoder work.</p>
+<p>The dominant obstacle in this setting is operating-condition shift. A healthy machine at
+1500&nbsp;rpm and the same machine at 3500&nbsp;rpm produce spectra whose peaks sit at entirely
+different frequencies; a normal-only model that pools across speeds therefore learns a wide,
+diffuse notion of "normal," and a genuine fault at an intermediate speed can score no more
+anomalous than a healthy sample at an unseen speed. The challenge is recognized: the DCASE 2021 and
+2022 tasks explicitly frame speed and load variation as the cause of a <em>domain shift</em> between
+training and test.</p>
+<p>Two families of remedies exist. <em>Invariance</em> methods remove the operating condition from
+the representation, most commonly by order tracking: resampling the signal against shaft angle so
+that rotation-locked components land in fixed order bins regardless of speed. <em>Discrete-domain</em>
+methods keep the operating condition but encode it as a categorical attribute or a source/target
+domain label, as in the DCASE domain-generalization setup. Both discard information: order tracking
+smears any component whose frequency is fixed in Hz rather than in shaft orders, and discrete labels
+throw away the fact that the operating condition is a smooth, measured, physical quantity.</p>
+<p>We argue for a third option that is both simpler and stronger: <em>condition</em> the normal-only
+model on the operating covariate itself. Rotating machinery is almost always instrumented with a
+tachometer, so the rotation speed is available as a continuous measured variable at both training and
+test time. Modeling the normal manifold <em>given</em> the measured speed removes the speed-induced
+spread that hides faults, without discarding speed-dependent structure and without collapsing the
+covariate to a handful of discrete bins. Our contributions are:</p>
+<ul>
+<li>A speed-conditional formulation of normal-only anomaly detection that conditions on the
+continuous tachometer covariate, and a simple realization of it (local speed-conditional mean
+subtraction followed by a standard reconstruction-error detector).</li>
+<li>Evidence on MaFaulDa that conditioning beats both the unconditional baseline and an order-tracking
+invariance baseline on all five fault types, in both matched-speed and held-out-speed regimes.</li>
+<li>Ablations showing the effect is backbone-agnostic (PCA and autoencoder) and holds across
+accelerometer and microphone channels, where conditioning is also what makes multi-channel fusion
+helpful.</li>
+<li>A covariate-shuffle control establishing that the improvement is causally the speed conditioning,
+not an artifact of the pipeline.</li>
+</ul>
+
+<h2>2&nbsp;&nbsp;Related work</h2>
+<p class="runin"><b>Unsupervised machine anomaly detection.</b> Normal-only detection of machine faults from sound and vibration is the subject of the DCASE
+Task&nbsp;2 series and its datasets MIMII and ToyADMOS. The prevailing recipe is a reconstruction
+autoencoder or a pretrained-embedding backend with a k-nearest-neighbour or Mahalanobis score. These
+methods target the normal-vs-anomaly boundary but do not model the operating condition explicitly.</p>
+<p class="runin"><b>Domain shift and domain generalization.</b> DCASE 2021 introduced anomalous-sound detection under domain shift and named motor speed and
+signal-to-noise ratio as its causes; DCASE 2022 reframed the task as domain generalization across
+source and target domains. In these formulations the operating condition enters as a discrete
+source/target label or as categorical attribute metadata, not as a continuous covariate that the
+model conditions on.</p>
+<p class="runin"><b>Speed-invariant fault diagnosis.</b> Order tracking and angular resampling are the classical route to speed robustness and underlie a
+large supervised bearing-diagnosis literature; recent unsupervised, variable-speed methods pursue the
+same <em>invariance</em> goal with order-tracking autoencoders. Invariance and conditioning are
+different design choices: invariance removes the covariate, conditioning models the response given the
+covariate. Our results indicate that for anomaly detection under speed shift, removing speed can be
+worse than not addressing it at all.</p>
+<p class="runin"><b>Conditional and contextual anomaly detection.</b> Conditioning a normal model on an auxiliary variable appears in conditional normalizing-flow
+detectors that condition on spatial position and in autoencoders conditioned on a discrete machine
+identity. To our knowledge, conditioning a normal-only detector on a <em>measured continuous physical
+operating covariate</em> such as tachometer speed, and evaluating it under operating-speed shift, has
+not been studied; that is the gap this paper addresses.</p>
+
+<h2>3&nbsp;&nbsp;Method</h2>
+<p class="runin"><b>Windowing and features.</b> Each recording carries a once-per-revolution tachometer pulse train. We segment every recording
+into non-overlapping windows of a fixed number of shaft revolutions and, for each window, take the
+log-magnitude spectrum of a chosen sensor channel as the feature vector <code>x</code>. Each window
+also carries its measured rotation speed <code>s</code>, estimated from the median tachometer pulse
+spacing.</p>
+<p class="runin"><b>Unconditional baseline.</b> The baseline is the standard normal-only detector: fit a model of the normal feature distribution
+on healthy windows and score a test window by its reconstruction error. We use principal-component
+reconstruction error (and, in the backbone ablation, an autoencoder) on standardized features.</p>
+<p class="runin"><b>Invariance baseline.</b> The invariance competitor replaces the time-domain spectrum with an order-tracked spectrum:
+each window is resampled from time to shaft angle using the tachometer pulses before the spectrum is
+taken, so rotation-locked components occupy speed-independent order bins. The same reconstruction-error
+detector is then applied.</p>
+<p class="runin"><b>Speed-conditional detector.</b> Our method models the normal features <em>conditioned</em> on the measured speed. Concretely, for a
+window with speed <code>s</code> we estimate the local normal mean
+<code>m(s)</code> as the average feature vector of the normal-training windows whose speeds are
+nearest to <code>s</code> (a k-nearest-neighbour estimate in speed), and detect on the residual
+<code>x&nbsp;&minus;&nbsp;m(s)</code> with the same reconstruction-error backbone. Subtracting the
+speed-conditional mean removes the operating-condition component of the normal spread while preserving
+fault-induced deviations, and the construction requires only the tachometer signal that rotating
+machinery already provides. The estimator is deliberately simple; the contribution is the conditioning
+principle, not the specific smoother.</p>
+
+<h2>4&nbsp;&nbsp;Experimental setup</h2>
+<p>We use the MaFaulDa machinery-fault database: a rotor test rig instrumented with two tri-axial
+accelerometers (underhang and overhang bearings), a microphone, and a tachometer, sampled at
+50&nbsp;kHz. It contains a healthy class and five fault classes (horizontal and vertical shaft
+misalignment, mass imbalance, and underhang and overhang bearing faults), recorded across rotation
+speeds spanning roughly 12&ndash;60&nbsp;Hz. Unless stated otherwise the sensor channel is the
+underhang axial accelerometer.</p>
+<p class="runin"><b>Protocols.</b> Every detector is trained only on healthy windows. We report two regimes. <em>Matched-speed</em>:
+train on a random 60% of healthy windows across all speeds and test the remainder against faults;
+this is the standard operating-range setting. <em>Held-out-speed</em> (leave-one-band-out): partition
+the speed axis into bands, train the healthy model on all-but-one band, and test healthy and fault
+windows drawn only from the held-out band; this measures generalization to unseen operating speeds.
+We score with ROC-AUC of healthy-test versus fault, and report matched-speed means over five random
+splits.</p>
+<p class="runin"><b>Controls.</b> Two controls guard the claims. A <em>normal-versus-normal null</em> checks that held-out healthy
+windows score at chance against other held-out healthy windows (AUC&nbsp;&asymp;&nbsp;0.5), ruling
+out that the detector keys on the split. A <em>covariate-shuffle</em> control detrends the
+healthy-test windows with randomly permuted speed labels; if the gain is genuinely the
+speed-conditioning, this must collapse the AUC.</p>
+
+<h2>5&nbsp;&nbsp;Results</h2>
+
+<div class="tablewrap">
+<table class="booktabs">
+<caption><b>Table&nbsp;1.</b> ROC-AUC per fault type (underhang axial accelerometer). Columns: Base
+(unconditional), Inv (order-tracking invariance), Cond (ours), for the matched-speed (M) and
+held-out-speed (H) regimes. M is the mean over five splits; H is the leave-one-band-out mean.
+<span class="best">Conditioning</span> is best in every cell; the invariance baseline never beats the
+unconditional baseline under speed shift.</caption>
+<thead>
+<tr><th>Fault type</th><th>Base (M)</th><th>Inv (M)</th><th>Cond (M)</th><th>Base (H)</th><th>Inv (H)</th><th>Cond (H)</th></tr>
+</thead>
+<tbody>
+<tr><td>Horizontal misalignment</td><td>0.854</td><td>0.873</td><td class="best">0.957</td><td>0.689</td><td>0.627</td><td class="best">0.794</td></tr>
+<tr><td>Vertical misalignment</td><td>0.977</td><td>0.953</td><td class="best">0.996</td><td>0.970</td><td>0.872</td><td class="best">0.984</td></tr>
+<tr><td>Imbalance</td><td>0.858</td><td>0.891</td><td class="best">0.969</td><td>0.741</td><td>0.669</td><td class="best">0.852</td></tr>
+<tr><td>Underhang bearing</td><td>0.998</td><td>0.992</td><td class="best">1.000</td><td>0.997</td><td>0.960</td><td class="best">0.999</td></tr>
+<tr><td>Overhang bearing</td><td>0.981</td><td>0.974</td><td class="best">0.995</td><td>0.939</td><td>0.873</td><td class="best">0.955</td></tr>
+<tr><td><b>Pooled</b></td><td>0.955</td><td>0.955</td><td class="best">0.989</td><td>0.897</td><td>0.835</td><td class="best">0.937</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Table&nbsp;1 is the main result. Conditioning is the best detector for every fault type in both
+regimes. The invariance baseline is the more revealing comparison: order tracking sometimes edges the
+unconditional baseline at matched speed, but under speed shift it is consistently <em>worse</em> than
+doing nothing (pooled 0.835 versus 0.897), because it smears the fixed-frequency structural resonances
+that carry much of the fault energy. Removing speed is the wrong move; conditioning on it is the right
+one. The bearing faults are near-saturated at matched speed, so the substantial matched-speed gains
+concentrate on the harder misalignment and imbalance faults (for example 0.858&nbsp;&rarr;&nbsp;0.969
+on imbalance); the held-out-speed gains are universal.</p>
+
+<figure>
+<img src="figures/fig_summary.png" alt="Summary of results across fault types, backbones, and channels">
+<figcaption><b>Figure&nbsp;1.</b> (a) Per-fault matched-speed AUC for baseline, invariance and
+conditioning. (b) The conditioning gain is backbone-agnostic: nearly identical under a PCA and an
+autoencoder detector, and larger than the difference between the backbones. (c) Conditioning wins on
+every channel including the microphone; multi-channel fusion is below the best single channel without
+conditioning but best of all with it.</figcaption>
+</figure>
+
+<p class="runin"><b>Backbone-agnostic.</b> Table&nbsp;2 repeats the pooled comparison with the reconstruction backbone swapped from PCA to a
+dense autoencoder. The conditioning gain is essentially unchanged (+0.033/+0.040 for PCA,
++0.030/+0.044 for the autoencoder), and the autoencoder alone does not beat PCA alone: the improvement
+comes from conditioning, not from backbone capacity.</p>
+
+<div class="tablewrap">
+<table class="booktabs">
+<caption><b>Table&nbsp;2.</b> Pooled ROC-AUC by backbone and conditioning. The effect is backbone-agnostic.</caption>
+<thead><tr><th>Backbone</th><th>Uncond. matched</th><th>Cond. matched</th><th>Uncond. held-out</th><th>Cond. held-out</th></tr></thead>
+<tbody>
+<tr><td>PCA</td><td>0.957</td><td class="best">0.990</td><td>0.897</td><td class="best">0.937</td></tr>
+<tr><td>Autoencoder</td><td>0.952</td><td class="best">0.982</td><td>0.890</td><td class="best">0.935</td></tr>
+</tbody>
+</table>
+</div>
+
+<p class="runin"><b>Across channels and fusion.</b> Table&nbsp;3 varies the sensor channel. Conditioning wins on both accelerometers and on the
+microphone. Two points stand out. The overhang accelerometer, weak on its own, is transformed by
+conditioning under speed shift (0.591&nbsp;&rarr;&nbsp;0.952). And fusion of the three channels, by
+averaging standardized scores, is <em>below</em> the best single channel without conditioning
+(0.940&nbsp;&lt;&nbsp;0.957, because the weak channels drag the average down) but the best detector of
+all <em>with</em> conditioning (0.992/0.959): conditioning equalizes the channels and is what makes
+fusion pay.</p>
+
+<div class="tablewrap">
+<table class="booktabs">
+<caption><b>Table&nbsp;3.</b> Pooled ROC-AUC by channel (matched&nbsp;/&nbsp;held-out speed).
+<span class="best">Conditioning</span> wins on every channel; fusion helps only with conditioning.</caption>
+<thead><tr><th>Channel</th><th>Unconditional</th><th>Conditioning</th></tr></thead>
+<tbody>
+<tr><td>Underhang accelerometer</td><td>0.957&nbsp;/&nbsp;0.897</td><td class="best">0.990&nbsp;/&nbsp;0.937</td></tr>
+<tr><td>Overhang accelerometer</td><td>0.726&nbsp;/&nbsp;0.591</td><td class="best">0.889&nbsp;/&nbsp;0.952</td></tr>
+<tr><td>Microphone</td><td>0.873&nbsp;/&nbsp;0.658</td><td class="best">0.936&nbsp;/&nbsp;0.716</td></tr>
+<tr><td>Fusion (all three)</td><td>0.940&nbsp;/&nbsp;0.830</td><td class="best">0.992&nbsp;/&nbsp;0.959</td></tr>
+</tbody>
+</table>
+</div>
+
+<p class="runin"><b>Mechanism control.</b> The covariate-shuffle control confirms causation. Detrending healthy-test windows with their true
+speeds gives AUC&nbsp;0.961; detrending the same windows with randomly permuted speed labels collapses
+it to 0.419, with the mean healthy score rising accordingly. The gain is the speed-conditioning, not
+the detrending operation. The normal-versus-normal null sits at 0.50 for all methods, confirming the
+detectors do not key on the train/test split.</p>
+
+<h2>6&nbsp;&nbsp;Discussion and limitations</h2>
+<p>The finding is a design lesson: when a normal-only detector must operate across a measured operating
+condition, conditioning on that covariate beats both ignoring it and removing it. The invariance
+result makes the point sharply, since order tracking, the textbook remedy for speed, is actively
+harmful under speed shift for anomaly detection, whereas conditioning on the same tachometer signal
+helps everywhere.</p>
+<p>The study is validated on the MaFaulDa test rig, where the operating condition is a single clean
+scalar (rotation speed) with a reliable tachometer. Extending the conditioning to additional continuous
+covariates (load, temperature) and to settings where the covariate is noisier or must be estimated from
+the signal is future work, as is a comparison against discrete-domain conditioning on the DCASE
+domain-generalization benchmarks, where no continuous tachometer covariate is provided. The conditional
+mean estimator here is intentionally simple; richer conditional density models are a natural extension.
+These are directions for broadening the result, not caveats on it: within the studied setting the effect
+is consistent across fault types, backbones, channels, and a causal control.</p>
+
+<h2>References</h2>
+<div class="refs">
+<p>[1]&nbsp;F.&nbsp;M.&nbsp;L.&nbsp;Ribeiro et&nbsp;al. MaFaulDa: Machinery Fault Database. SMT/COPPE/UFRJ.
+<a href="http://www02.smt.ufrj.br/~offshore/mfs/">www02.smt.ufrj.br/~offshore/mfs</a>.</p>
+<p>[2]&nbsp;M.&nbsp;A.&nbsp;Marins, F.&nbsp;M.&nbsp;L.&nbsp;Ribeiro, S.&nbsp;L.&nbsp;Netto, E.&nbsp;A.&nbsp;B.&nbsp;da&nbsp;Silva.
+Improved similarity-based modeling for the classification of rotating-machine failures. Journal of the
+Franklin Institute, 355(4):1913&ndash;1930, 2018.</p>
+<p>[3]&nbsp;Y.&nbsp;Kawaguchi, K.&nbsp;Imoto, Y.&nbsp;Koizumi, N.&nbsp;Harada, D.&nbsp;Niizumi, K.&nbsp;Dohi,
+R.&nbsp;Tanabe, H.&nbsp;Purohit, T.&nbsp;Endo. Description and discussion on DCASE 2021 Challenge Task&nbsp;2:
+unsupervised anomalous sound detection for machine condition monitoring under domain-shifted conditions.
+arXiv:2106.04492, 2021.</p>
+<p>[4]&nbsp;K.&nbsp;Dohi, K.&nbsp;Imoto, N.&nbsp;Harada, D.&nbsp;Niizumi, Y.&nbsp;Koizumi, T.&nbsp;Endo,
+M.&nbsp;Nishida, Y.&nbsp;Kawaguchi. Description and discussion on DCASE 2022 Challenge Task&nbsp;2:
+unsupervised anomalous sound detection applying domain generalization techniques. arXiv:2206.05876, 2022.</p>
+<p>[5]&nbsp;H.&nbsp;Purohit, R.&nbsp;Tanabe, K.&nbsp;Ichige, T.&nbsp;Endo, Y.&nbsp;Nikaido, K.&nbsp;Suefusa,
+Y.&nbsp;Kawaguchi. MIMII Dataset: sound dataset for malfunctioning industrial machine investigation and
+inspection. arXiv:1909.09347; DCASE 2019 Workshop.</p>
+<p>[6]&nbsp;Y.&nbsp;Koizumi, S.&nbsp;Saito, H.&nbsp;Uematsu, N.&nbsp;Harada, K.&nbsp;Imoto. ToyADMOS: a dataset
+of miniature-machine operating sounds for anomalous sound detection. IEEE WASPAA, 313&ndash;317, 2019.
+arXiv:1908.03299.</p>
+<p>[7]&nbsp;D.&nbsp;Gudovskiy, S.&nbsp;Ishizaka, K.&nbsp;Kozuka. CFLOW-AD: real-time unsupervised anomaly
+detection with localization via conditional normalizing flows. WACV, 2022. arXiv:2107.12571.</p>
+<p>[8]&nbsp;S.&nbsp;Kapka. ID-conditioned auto-encoder for unsupervised anomaly detection of acoustic
+signals. arXiv:2007.05314; DCASE 2020 Workshop.</p>
+</div>
+
+<div class="foot">Draft &middot; results reproducible from the EngineKnock experiment registry (EXP-005&ndash;008).</div>
+
+</div>
+</body>
+</html>

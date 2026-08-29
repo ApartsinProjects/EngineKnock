@@ -1,0 +1,26 @@
+{
+  "PCA-time_uncond": {
+    "matched": 0.957,
+    "lobo": 0.897
+  },
+  "PCA-order_invariance": {
+    "matched": 0.959,
+    "lobo": 0.835
+  },
+  "PCA-speed_cond": {
+    "matched": 0.99,
+    "lobo": 0.937
+  },
+  "AE-time_uncond": {
+    "matched": 0.952,
+    "lobo": 0.89
+  },
+  "AE-order_invariance": {
+    "matched": 0.96,
+    "lobo": 0.809
+  },
+  "AE-speed_cond": {
+    "matched": 0.984,
+    "lobo": 0.933
+  }
+}
