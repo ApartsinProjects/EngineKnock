@@ -140,31 +140,47 @@ not an artifact of the pipeline.</li>
 </ul>
 
 <h2>2&nbsp;&nbsp;Related work</h2>
-<p class="runin"><b>Unsupervised machine anomaly detection.</b> Normal-only detection of machine faults from sound and vibration is the subject of the DCASE
-Task&nbsp;2 series and its datasets MIMII and ToyADMOS. The prevailing recipe is a reconstruction
-autoencoder or a pretrained-embedding backend with a k-nearest-neighbour or Mahalanobis score. These
-methods target the normal-vs-anomaly boundary but do not model the operating condition explicitly.</p>
+<p class="runin"><b>Unsupervised anomaly detection.</b> Normal-only detection is a broad field. Reconstruction and generative
+detectors flag inputs the model reconstructs poorly, from autoencoders and their memory-augmented
+variants&nbsp;[17] to adversarial and generative models&nbsp;[15,&nbsp;16] and discriminatively trained
+reconstruction embeddings&nbsp;[14]; one-class and feature-distribution methods model the healthy region
+directly&nbsp;[11,&nbsp;13] or by recall over a memory bank of healthy patches&nbsp;[12], and industrial
+benchmarks such as MVTec&nbsp;AD standardized the setting&nbsp;[18]. A parallel family scores a test point by
+its distance to healthy examples in a pretrained feature space, using Mahalanobis or nearest-neighbour
+statistics&nbsp;[35,&nbsp;36,&nbsp;37,&nbsp;38]; we adopt a nearest-neighbour construction, but in the
+<em>covariate</em> rather than the feature space. For machine sound specifically, the DCASE Task&nbsp;2
+series and its datasets MIMII&nbsp;[5] and ToyADMOS&nbsp;[6] are the standard testbeds. None of these
+methods model the operating condition explicitly.</p>
+<p class="runin"><b>Machine condition monitoring.</b> Vibration-based fault diagnosis has a large literature, surveyed for deep
+learning in&nbsp;[19,&nbsp;20] and for bearings specifically in&nbsp;[22], with the CWRU set a common
+benchmark&nbsp;[21]. This work is predominantly supervised multi-class classification; the unsupervised,
+normal-only setting we study is the harder and more deployment-realistic one.</p>
 <p class="runin"><b>Domain shift and domain generalization.</b> DCASE 2021 introduced anomalous-sound detection under domain shift and named motor speed and
 signal-to-noise ratio as its causes; DCASE 2022 reframed the task as domain generalization across
-source and target domains. In these formulations the operating condition enters as a discrete
-source/target label or as categorical attribute metadata, not as a continuous covariate that the
-model conditions on.</p>
-<p class="runin"><b>Speed-invariant fault diagnosis.</b> Order tracking and angular resampling are the classical route to speed robustness and underlie a
-large supervised bearing-diagnosis literature; recent unsupervised, variable-speed methods pursue the
-same <em>invariance</em> goal with order-tracking autoencoders and order-adaptive subspace learning
-(OASSL)&nbsp;[9]. Invariance and conditioning are
-different design choices: invariance removes the covariate, conditioning models the response given the
-covariate. Our results indicate that for anomaly detection under speed shift, removing speed can be
-worse than not addressing it at all.</p>
+source and target domains&nbsp;[3,&nbsp;4], and later editions turned to the first-shot
+setting&nbsp;[27]. Strong systems use self-supervised classification of section or attribute labels and
+outlier exposure&nbsp;[28]. Transfer-learning approaches to variable-condition fault diagnosis are
+surveyed in&nbsp;[29]. In all of these the operating condition enters as a discrete source/target label or
+categorical attribute, not as a continuous covariate the model conditions on.</p>
+<p class="runin"><b>Speed-invariant fault diagnosis.</b> Order tracking and angular resampling are the classical route to
+speed robustness: computed order tracking&nbsp;[23], the Vold-Kalman tracking filter&nbsp;[25], and
+angular resampling of the raw signal&nbsp;[24], with envelope and spectral-kurtosis analysis isolating
+bearing fault bands&nbsp;[24,&nbsp;26]. Recent unsupervised, variable-speed methods pursue the same
+<em>invariance</em> goal with order-tracking autoencoders and order-adaptive subspace learning
+(OASSL)&nbsp;[9]. Invariance and conditioning are different design choices: invariance removes the
+covariate, conditioning models the response given the covariate. Our results indicate that for anomaly
+detection under speed shift, removing speed can be worse than not addressing it at all.</p>
 <p class="runin"><b>Conditional and contextual anomaly detection.</b> Conditioning a normal model on an auxiliary variable is an established idea: conditional (or
-contextual) anomaly detection dates to Song et&nbsp;al.&nbsp;[10], and recent detectors condition
-normalizing flows on spatial position&nbsp;[7] or autoencoders on a discrete machine identity&nbsp;[8].
-What is specific here, and what we have not found addressed, is conditioning a normal-only
-machine-fault detector on the <em>measured continuous rotation speed</em> from a tachometer and
-evaluating it under operating-speed shift with a direct head-to-head against order-tracking invariance.
-Our discrete-bin ablation makes the distinction concrete: conditioning on the continuous covariate
-beats conditioning on a binned (discrete) version of it, which is the form the closest prior work
-takes.</p>
+contextual) anomaly detection dates to Song et&nbsp;al.&nbsp;[10]. Conditional density models, in
+particular normalizing flows&nbsp;[30,&nbsp;31,&nbsp;32] and conditional variational
+autoencoders&nbsp;[34], support conditioning a likelihood on side information, and flow-based detectors
+condition on spatial position for defect localization&nbsp;[7,&nbsp;33]; others condition an autoencoder
+on a discrete machine identity&nbsp;[8]. What is specific here, and what we have not found addressed, is
+conditioning a normal-only machine-fault detector on the <em>measured continuous rotation speed</em> from
+a tachometer and evaluating it under operating-speed shift with a direct head-to-head against
+order-tracking invariance. Our discrete-bin ablation makes the distinction concrete: conditioning on the
+continuous covariate beats conditioning on a binned (discrete) version of it, which is the form the
+closest prior work takes.</p>
 
 <h2>3&nbsp;&nbsp;Problem formulation</h2>
 <p>We are given a training set of healthy windows $\{(x_i, s_i)\}_{i=1}^n$, where $x_i \in
@@ -184,7 +200,7 @@ $s$; conditioning uses it.</p>
 non-overlapping windows of $R$ shaft revolutions and take the log-magnitude spectrum of a chosen sensor
 channel, $x = \log(1 + |\mathcal{F}\{w\}|)$, as the feature. The window speed $s = f_s / \Delta$ is the
 sampling rate divided by the median tachometer pulse spacing $\Delta$.</p>
-<p class="runin"><b>Speed-conditional detector.</b> We estimate the local healthy mean at speed $s$ by a k-nearest-neighbour
+<p class="runin"><b>Speed-conditional detector.</b> Figure&nbsp;1 shows the pipeline. We estimate the local healthy mean at speed $s$ by a k-nearest-neighbour
 average in the speed variable,
 $$ m(s) = \frac{1}{k} \sum_{i \in \mathcal{N}_k(s)} x_i, \qquad
    \mathcal{N}_k(s) = \{\text{indices of the } k \text{ training windows with speed nearest } s\}, $$
@@ -199,6 +215,15 @@ unconditional baseline, a degenerate limit we verify empirically. A discrete-cov
 the kNN average by the mean of the training bin into which $s$ falls; a stronger backbone replaces the
 PCA reconstruction error by that of a dense autoencoder trained on the residuals. The estimator is
 deliberately simple: the contribution is the conditioning principle, not a particular smoother.</p>
+<figure>
+<img src="figures/fig_method.png" alt="Method schematic: revolution windowing, spectrum, speed-conditional mean subtraction, reconstruction-error score">
+<figcaption><b>Figure&nbsp;1.</b> The speed-conditional detector. A window is formed over whole shaft
+revolutions and reduced to a log-magnitude spectrum $x$ with its measured speed $s$. The
+speed-conditional mean $m(s)$, the average of the $k$ healthy-training windows nearest in speed, is
+subtracted; the reconstruction error of the residual $r = x - m(s)$ is the anomaly score. Only the
+mean-subtraction stage differs from the unconditional baseline.</figcaption>
+</figure>
+
 <p class="runin"><b>Baselines.</b> The unconditional baseline applies the same reconstruction-error detector to $x$ with no
 mean subtraction. The invariance baseline applies it to an order-tracked spectrum, obtained by resampling
 each window from time to shaft angle using the tachometer before the spectrum is taken, so rotation-locked
@@ -218,7 +243,7 @@ $O(dK)$ projection. The method adds only the kNN mean over the unconditional det
 training windows (or their per-speed summaries) for the lookup.</p>
 
 <h2>5&nbsp;&nbsp;Experimental setup</h2>
-<p>We use the MaFaulDa machinery-fault database: a rotor test rig instrumented with two tri-axial
+<p>We use the MaFaulDa machinery-fault database&nbsp;[1,&nbsp;2]: a rotor test rig instrumented with two tri-axial
 accelerometers (underhang and overhang bearings), a microphone, and a tachometer, sampled at
 50&nbsp;kHz. It contains a healthy class and five fault classes (horizontal and vertical shaft
 misalignment, mass imbalance, and underhang and overhang bearing faults), recorded across rotation
@@ -260,7 +285,8 @@ unconditional baseline under speed shift.</caption>
 </table>
 </div>
 
-<p>Table&nbsp;1 is the main result. Conditioning is the best detector for every fault type in both
+<p>Table&nbsp;1 is the main result, and Figure&nbsp;2 summarizes it alongside the backbone and channel
+comparisons. Conditioning is the best detector for every fault type in both
 regimes. The invariance baseline is the more revealing comparison: order tracking sometimes edges the
 unconditional baseline at matched speed, but under speed shift it is consistently <em>worse</em> than
 doing nothing (pooled 0.835 versus 0.897), because it smears the fixed-frequency structural resonances
@@ -278,7 +304,7 @@ equality of conditioning against both baseline and invariance in the matched reg
 
 <figure>
 <img src="figures/fig_summary.png" alt="Summary of results across fault types, backbones, and channels">
-<figcaption><b>Figure&nbsp;1.</b> (a) Per-fault matched-speed AUC for baseline, invariance and
+<figcaption><b>Figure&nbsp;2.</b> (a) Per-fault matched-speed AUC for baseline, invariance and
 conditioning. (b) The conditioning gain is backbone-agnostic: nearly identical under a PCA and an
 autoencoder detector, and larger than the difference between the backbones. (c) Conditioning wins on
 every channel including the microphone; multi-channel fusion is below the best single channel without
@@ -335,7 +361,7 @@ fusion pay.</p>
 </table>
 </div>
 
-<p class="runin"><b>Ablations: neighbourhood size and continuous versus discrete conditioning.</b> Figure&nbsp;2 examines the
+<p class="runin"><b>Ablations: neighbourhood size and continuous versus discrete conditioning.</b> Figure&nbsp;3 examines the
 method's single hyperparameter and its central design choice. The neighbourhood size $k$ has a broad
 optimum: matched-speed AUC peaks near $k=5$ and held-out AUC is flat over $k \in [5, 50]$ (panel b). At
 the degenerate limit $k=n$ the conditional mean becomes the global mean and the detector reproduces the
@@ -349,7 +375,7 @@ discrete domain label does not.</p>
 
 <figure>
 <img src="figures/fig_ablations.png" alt="Held-out-speed degradation, k-sensitivity, and discrete-versus-continuous conditioning">
-<figcaption><b>Figure&nbsp;2.</b> (a) Held-out-speed degradation: conditioning holds above the baseline at
+<figcaption><b>Figure&nbsp;3.</b> (a) Held-out-speed degradation: conditioning holds above the baseline at
 every held-out band while invariance falls below it, most at low speed. (b) Sensitivity to the
 neighbourhood size $k$; the dotted line is the unconditional baseline, which $k=n$ ("all") recovers.
 (c) Continuous nearest-neighbour conditioning exceeds discrete-bin conditioning at every bin count.</figcaption>
@@ -371,8 +397,8 @@ binned version of it, the form the nearest prior work takes.</caption>
 </table>
 </div>
 
-<p class="runin"><b>Mechanism control.</b> A covariate-shuffle control establishes that the gain requires the true speed labels, not merely the
-detrending operation. On the primary configuration, detrending healthy-test windows with their true
+<p class="runin"><b>Mechanism control.</b> A covariate-shuffle control establishes that the gain requires the true speed labels, not the
+detrending operation alone. On the primary configuration, detrending healthy-test windows with their true
 speeds gives AUC&nbsp;0.961; detrending the same windows with randomly permuted speed labels collapses
 it to 0.419, with the mean healthy score rising accordingly. The normal-versus-normal null sits at 0.50 for all methods, confirming the
 detectors do not key on the train/test split.</p>
@@ -468,6 +494,34 @@ unsupervised anomaly detection under time-varying rotational speed conditions. M
 Signal Processing, 248:114001, 2026.</p>
 <p>[10]&nbsp;X.&nbsp;Song, M.&nbsp;Wu, C.&nbsp;Jermaine, S.&nbsp;Ranka. Conditional anomaly detection. IEEE
 Transactions on Knowledge and Data Engineering, 19(5):631&ndash;645, 2007.</p>
+<p>[11]&nbsp;L.&nbsp;Ruff et&nbsp;al. Deep one-class classification. ICML, 2018.</p>
+<p>[12]&nbsp;K.&nbsp;Roth et&nbsp;al. Towards total recall in industrial anomaly detection. CVPR, 2022. arXiv:2106.08265.</p>
+<p>[13]&nbsp;T.&nbsp;Defard et&nbsp;al. PaDiM: a patch distribution modeling framework for anomaly detection and localization. ICPR, 2021. arXiv:2011.08785.</p>
+<p>[14]&nbsp;V.&nbsp;Zavrtanik, M.&nbsp;Kristan, D.&nbsp;Sko&#269;aj. DRAEM: a discriminatively trained reconstruction embedding for surface anomaly detection. ICCV, 2021. arXiv:2108.07610.</p>
+<p>[15]&nbsp;T.&nbsp;Schlegl et&nbsp;al. f-AnoGAN: fast unsupervised anomaly detection with generative adversarial networks. Medical Image Analysis, 54:30&ndash;44, 2019.</p>
+<p>[16]&nbsp;S.&nbsp;Akcay, A.&nbsp;Atapour-Abarghouei, T.&nbsp;P.&nbsp;Breckon. GANomaly: semi-supervised anomaly detection via adversarial training. ACCV, 2018. arXiv:1805.06725.</p>
+<p>[17]&nbsp;D.&nbsp;Gong et&nbsp;al. Memorizing normality to detect anomaly: memory-augmented deep autoencoder for unsupervised anomaly detection. ICCV, 2019. arXiv:1904.02639.</p>
+<p>[18]&nbsp;P.&nbsp;Bergmann et&nbsp;al. MVTec AD: a comprehensive real-world dataset for unsupervised anomaly detection. CVPR, 2019.</p>
+<p>[19]&nbsp;R.&nbsp;Zhao et&nbsp;al. Deep learning and its applications to machine health monitoring. Mechanical Systems and Signal Processing, 115:213&ndash;237, 2019.</p>
+<p>[20]&nbsp;Y.&nbsp;Lei et&nbsp;al. Applications of machine learning to machine fault diagnosis: a review and roadmap. Mechanical Systems and Signal Processing, 138:106587, 2020.</p>
+<p>[21]&nbsp;W.&nbsp;A.&nbsp;Smith, R.&nbsp;B.&nbsp;Randall. Rolling element bearing diagnostics using the Case Western Reserve University data: a benchmark study. Mechanical Systems and Signal Processing, 64&ndash;65:100&ndash;131, 2015.</p>
+<p>[22]&nbsp;D.-T.&nbsp;Hoang, H.-J.&nbsp;Kang. A survey on deep learning based bearing fault diagnosis. Neurocomputing, 335:327&ndash;335, 2019.</p>
+<p>[23]&nbsp;K.&nbsp;R.&nbsp;Fyfe, E.&nbsp;D.&nbsp;S.&nbsp;Munck. Analysis of computed order tracking. Mechanical Systems and Signal Processing, 11(2):187&ndash;205, 1997.</p>
+<p>[24]&nbsp;R.&nbsp;B.&nbsp;Randall, J.&nbsp;Antoni. Rolling element bearing diagnostics: a tutorial. Mechanical Systems and Signal Processing, 25(2):485&ndash;520, 2011.</p>
+<p>[25]&nbsp;H.&nbsp;Vold, M.&nbsp;Mains, J.&nbsp;Blough. Theoretical foundations for high-performance order tracking with the Vold-Kalman tracking filter. SAE Technical Paper 972007, 1997.</p>
+<p>[26]&nbsp;J.&nbsp;Antoni, R.&nbsp;B.&nbsp;Randall. The spectral kurtosis: application to the vibratory surveillance and diagnostics of rotating machines. Mechanical Systems and Signal Processing, 20(2):308&ndash;331, 2006.</p>
+<p>[27]&nbsp;K.&nbsp;Dohi et&nbsp;al. Description and discussion on DCASE 2023 Challenge Task 2: first-shot unsupervised anomalous sound detection for machine condition monitoring. arXiv:2305.07828, 2023.</p>
+<p>[28]&nbsp;P.&nbsp;Primus et&nbsp;al. Anomalous sound detection as a simple binary classification problem with careful selection of proxy outlier examples. DCASE Workshop, 2020. arXiv:2011.02949.</p>
+<p>[29]&nbsp;W.&nbsp;Li et&nbsp;al. A systematic review of deep transfer learning for machinery fault diagnosis. Neurocomputing, 407:121&ndash;135, 2020.</p>
+<p>[30]&nbsp;L.&nbsp;Dinh, J.&nbsp;Sohl-Dickstein, S.&nbsp;Bengio. Density estimation using Real NVP. ICLR, 2017. arXiv:1605.08803.</p>
+<p>[31]&nbsp;D.&nbsp;P.&nbsp;Kingma, P.&nbsp;Dhariwal. Glow: generative flow with invertible 1&times;1 convolutions. NeurIPS, 2018. arXiv:1807.03039.</p>
+<p>[32]&nbsp;G.&nbsp;Papamakarios et&nbsp;al. Normalizing flows for probabilistic modeling and inference. Journal of Machine Learning Research, 22(57):1&ndash;64, 2021. arXiv:1912.02762.</p>
+<p>[33]&nbsp;M.&nbsp;Rudolph, B.&nbsp;Wandt, B.&nbsp;Rosenhahn. Same same but DifferNet: semi-supervised defect detection with normalizing flows. WACV, 2021. arXiv:2008.12577.</p>
+<p>[34]&nbsp;D.&nbsp;P.&nbsp;Kingma, M.&nbsp;Welling. Auto-encoding variational Bayes. ICLR, 2014. arXiv:1312.6114.</p>
+<p>[35]&nbsp;K.&nbsp;Lee et&nbsp;al. A simple unified framework for detecting out-of-distribution samples and adversarial attacks. NeurIPS, 2018. arXiv:1807.03888.</p>
+<p>[36]&nbsp;L.&nbsp;Bergman, N.&nbsp;Cohen, Y.&nbsp;Hoshen. Deep nearest neighbor anomaly detection. arXiv:2002.10445, 2020.</p>
+<p>[37]&nbsp;Y.&nbsp;Sun et&nbsp;al. Out-of-distribution detection with deep nearest neighbors. ICML, 2022. arXiv:2204.06507.</p>
+<p>[38]&nbsp;O.&nbsp;Rippel, P.&nbsp;Mertens, D.&nbsp;Merhof. Modeling the distribution of normal data in pre-trained deep features for anomaly detection. ICPR, 2021. arXiv:2005.14140.</p>
 </div>
 
 <div class="foot"><b>Data and code.</b> MaFaulDa (SMT/COPPE/UFRJ) and MIMII-DG (Zenodo 10.5281/zenodo.6529888)
