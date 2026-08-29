@@ -10,3 +10,5 @@
 | 006 | 2026-08-29 | [Multi-fault external validity (5 faults)](2026-08-29_006_multifault_validity.md) | completed (positive) |
 | 007 | 2026-08-29 | [Backbone-agnosticity (PCA vs AE)](2026-08-29_007_ae_backbone.md) | completed (positive) |
 | 008 | 2026-08-29 | [Multi-channel (accel×2 + mic) + fusion](2026-08-29_008_multichannel.md) | completed (positive) |
+| 009 | 2026-08-29 | Strong-invariance rebuttal (PCA/AE × treatments, OASSL stand-in) | completed (positive) |
+| 010 | 2026-08-29 | MIMII-DG breadth (discrete + continuous attribute conditioning) | completed (positive) |
