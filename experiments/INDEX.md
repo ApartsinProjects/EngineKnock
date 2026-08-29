@@ -12,3 +12,5 @@
 | 008 | 2026-08-29 | [Multi-channel (accel×2 + mic) + fusion](2026-08-29_008_multichannel.md) | completed (positive) |
 | 009 | 2026-08-29 | Strong-invariance rebuttal (PCA/AE × treatments, OASSL stand-in) | completed (positive) |
 | 010 | 2026-08-29 | MIMII-DG breadth (discrete + continuous attribute conditioning) | completed (positive) |
+| 011 | 2026-08-29 | Consolidated one-pass eval (CIs, pAUC, per-band, Wilcoxon) | completed (positive) |
+| 012 | 2026-08-29 | Ablations: k-sweep + discrete-bin vs continuous | completed (positive) |
