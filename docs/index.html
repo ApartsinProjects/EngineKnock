@@ -13,7 +13,13 @@ body{
   font-family:"Charter","Iowan Old Style","Source Serif Pro",Georgia,"Times New Roman",serif;
   color:var(--ink); background:#fff; margin:0; line-height:1.55;
 }
-.wrap{max-width:720px; margin:0 auto; padding:46px 24px 80px;}
+.wrap{max-width:720px; margin:0 auto; padding:46px 24px 80px; position:relative;}
+.downloads{position:absolute; top:16px; right:18px; display:flex; gap:8px;}
+.downloads a{font-size:8.5pt; letter-spacing:.04em; text-transform:uppercase; font-weight:600;
+  color:var(--navy); border:1px solid var(--navy); border-radius:4px; padding:4px 9px;
+  text-decoration:none; background:#fff;}
+.downloads a:hover{background:var(--navy); color:#fff;}
+@media print{.downloads{display:none;}}
 h1.title{text-align:center; font-size:19pt; font-weight:600; line-height:1.25; margin:0 0 14px;}
 p.authors{text-align:center; font-size:11pt; color:var(--soft); margin:0 0 4px; text-indent:0;}
 p.affil{text-align:center; font-size:9.5pt; color:var(--muted); margin:0 0 22px; text-indent:0;}
@@ -56,8 +62,13 @@ figcaption b{color:var(--ink);}
 <body>
 <div class="wrap">
 
+<div class="downloads no-docx no-print" data-docx="ignore">
+<a href="EngineKnock_speed_conditional.pdf" download>PDF</a>
+<a href="EngineKnock_speed_conditional.docx" download>DOCX</a>
+</div>
+
 <h1 class="title">Condition, Don't Remove: Speed-Conditioned Normal Modeling<br>for Unsupervised Fault Detection in Rotating Machinery</h1>
-<p class="authors">Anonymous</p>
+<p class="authors">Alexander Apartsin</p>
 <p class="affil">Preprint. Draft generated from the EngineKnock experiment registry.</p>
 
 <h2 class="abs-h">Abstract</h2>
