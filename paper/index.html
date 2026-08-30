@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Condition, Don't Remove: Speed-Conditioned Normal Modeling for Unsupervised Fault Detection</title>
+<title>Ignore, Condition, or Remove: Treating a Measured Operating Covariate in Unsupervised Machinery Anomaly Detection</title>
 <style>
 :root{
   --ink:#111418; --soft:#2c3138; --muted:#5a626c; --navy:#14385c; --rule:#d1d4d8; --codebg:#f4f5f7;
@@ -75,30 +75,30 @@ figcaption b{color:var(--ink);}
 <a href="EngineKnock_speed_conditional.docx" download>DOCX</a>
 </div>
 
-<h1 class="title">Condition, Don't Remove: Speed-Conditioned Normal Modeling<br>for Unsupervised Fault Detection in Rotating Machinery</h1>
+<h1 class="title">Ignore, Condition, or Remove:<br>Treating a Measured Operating Covariate in Unsupervised Machinery Anomaly Detection</h1>
 <p class="authors">Alexander Apartsin<sup>1</sup>, Yehudit Aperstein<sup>2</sup></p>
 <p class="affil"><sup>1</sup>School of Computer Science, Faculty of Sciences, Holon Institute of Technology (HIT), Holon, Israel<br>
 <sup>2</sup>Intelligent Systems, Afeka Academic College of Engineering, Tel-Aviv, Israel</p>
 
 <h2 class="abs-h">Abstract</h2>
 <div class="abstract">
-<p>Unsupervised fault detection for rotating machinery trains on healthy data alone, and its
-central obstacle is operating-condition shift: a healthy machine produces markedly different
-vibration and acoustic spectra at different rotation speeds, so faults hide inside the speed-induced
-spread of the normal class. Existing methods either remove speed through order tracking and
-speed-invariant representations, or treat it as a discrete domain label. We instead condition the
-normal model on the continuous speed covariate that rotating machinery already measures through its
-tachometer. The realization is deliberately simple: subtract a local speed-conditional normal mean,
-estimated by nearest neighbours in speed, then apply a standard reconstruction-error detector. On MaFaulDa
-(accelerometers, microphone, tachometer, five fault types, 12 to 60&nbsp;Hz), conditioning raises
-pooled ROC-AUC from 0.956 to 0.989 at matched speed, and under a leakage-free leave-one-speed-out
-protocol with cross-fitted healthy means from 0.901 to 0.956, against 0.820 for order-tracking
-invariance (paired per-recording $p<10^{-10}$); it wins on all five fault types, and the invariance
-baseline is worse than the unconditional detector on the pooled and per-fault held-out results. The gain is backbone-agnostic across PCA and
-autoencoder detectors, holds across accelerometer and microphone channels, turns multi-channel
-fusion from harmful into beneficial, and collapses when speed labels are permuted (AUC 0.961 to
-0.419). The principle transfers to the MIMII-DG acoustic benchmark, including a discrete operating
-attribute. For speed variation, condition, don't remove.</p>
+<p>Unsupervised, normal-only anomaly detection for machinery must build a healthy reference that
+changes with operating condition: a healthy machine produces markedly different vibration and acoustic
+spectra at different rotation speeds, so faults hide inside the operating-induced spread of the normal
+class. Given a measured operating covariate, one can ignore it, condition the healthy model on it, or
+remove it with an invariant transform. We show that the right choice is not fixed. On MaFaulDa
+(accelerometers, microphone, tachometer, five fault types, 12 to 60&nbsp;Hz), removing rotation speed by
+order tracking is worse than ignoring it under speed shift, while conditioning on the measured speed beats
+both; yet on the MIMII-DG fan machine, whose attribute is a background-noise mixture rather than an
+operating state, conditioning hurts. We give a lightweight, nonparametric realization of conditioning,
+subtracting a local covariate-conditional healthy mean estimated by nearest neighbours before a standard
+reconstruction-error detector, and a healthy-only criterion for the choice, the cross-validated healthy
+variance the covariate explains. Under a leakage-free leave-one-speed-out protocol with cross-fitted
+healthy means, conditioning reaches ROC-AUC 0.956 against 0.901 for the unconditional detector and 0.820
+for order-tracking invariance (paired per-recording $p<10^{-10}$), winning on all five fault types; the
+result is backbone-agnostic across PCA and autoencoder detectors and holds across accelerometer and
+microphone channels. The message is a decision, not a default: treat a measured covariate by how much
+healthy variation it explains.</p>
 </div>
 
 <h2>1&nbsp;&nbsp;Introduction</h2>
@@ -115,30 +115,37 @@ diffuse notion of "normal," and a genuine fault at an intermediate speed can sco
 anomalous than a healthy sample at an unseen speed. The challenge is recognized: the DCASE 2021 and
 2022 tasks explicitly frame speed and load variation as the cause of a <em>domain shift</em> between
 training and test&nbsp;[3,&nbsp;4].</p>
-<p>Two families of remedies exist. <em>Invariance</em> methods remove the operating condition from
-the representation, most commonly by order tracking: resampling the signal against shaft angle so
-that rotation-locked components land in fixed order bins regardless of speed. <em>Discrete-domain</em>
-methods keep the operating condition but encode it as a categorical attribute or a source/target
-domain label, as in the DCASE domain-generalization setup. Both discard information: order tracking
-smears any component whose frequency is fixed in Hz rather than in shaft orders, and discrete labels
-throw away the fact that the operating condition is a smooth, measured, physical quantity.</p>
-<p>We argue for a third option that is both simpler and stronger: <em>condition</em> the normal-only
-model on the operating covariate itself. Rotating machinery is commonly instrumented with a
-tachometer, so the rotation speed is available as a continuous measured variable at both training and
-test time. Modeling the normal manifold <em>given</em> the measured speed removes the speed-induced
-spread that hides faults, without discarding speed-dependent structure and without collapsing the
-covariate to a handful of discrete bins. Our contributions are:</p>
+<p>Facing a measured operating covariate, a normal-only detector has three choices. It can
+<em>ignore</em> the covariate and pool a single healthy model across all conditions. It can
+<em>remove</em> the covariate with an invariant transform, most commonly order tracking: resampling the
+signal against shaft angle so that rotation-locked components land in fixed order bins regardless of
+speed. Or it can <em>condition</em> the healthy model on the measured covariate, which rotating machinery
+already provides through its tachometer. Each choice discards or keeps different information: ignoring
+lets the covariate widen the normal class so faults hide in its spread; removing smears any component
+whose frequency is fixed in Hz rather than in shaft orders, and can destroy fault-relevant structure;
+conditioning keeps the covariate but must estimate the healthy response as a function of it.</p>
+<p>This paper treats that choice as the object of study rather than assuming an answer. We show on real
+machinery data that the right choice is not fixed. Removing rotation speed by order tracking is worse
+than ignoring it under speed shift, while conditioning on the measured speed beats both; yet conditioning
+on an attribute that is not a genuine operating state, a background-noise mixture, is worse than ignoring
+it. We give a lightweight nonparametric realization of conditioning and a healthy-only criterion for the
+choice: condition when the covariate explains cross-validated healthy variance, and remove only with
+caution, because removal can discard fixed-frequency fault energy. Our contributions are:</p>
 <ul>
-<li>A speed-conditional formulation of normal-only anomaly detection that conditions on the
-continuous tachometer covariate, and a simple realization of it (local speed-conditional mean
-subtraction followed by a standard reconstruction-error detector).</li>
-<li>Evidence on MaFaulDa&nbsp;[1,&nbsp;2] that conditioning beats both the unconditional baseline and an order-tracking
-invariance baseline on all five fault types, in both matched-speed and held-out-speed regimes.</li>
-<li>Ablations showing the effect is backbone-agnostic (PCA and autoencoder) and holds across
-accelerometer and microphone channels, where conditioning is also what makes multi-channel fusion
-helpful.</li>
-<li>A covariate-shuffle control establishing that the improvement requires the true speed labels,
-not an artifact of the pipeline.</li>
+<li>A framing of healthy-reference construction under a measured operating covariate as a three-way
+choice, ignore the covariate, condition the healthy model on it, or remove it with an invariant
+transform, and evidence on MaFaulDa&nbsp;[1,&nbsp;2] that the right choice is not fixed: removing rotation
+speed by order tracking is worse than ignoring it under speed shift, while conditioning on the measured
+speed beats both.</li>
+<li>A lightweight, nonparametric realization of conditioning, a local covariate-conditional healthy mean
+subtracted before a standard reconstruction-error detector, competitive without a deep conditional
+generator, backbone-agnostic across PCA and autoencoder detectors and effective across accelerometer and
+microphone channels.</li>
+<li>A healthy-only criterion for the choice, the cross-validated healthy variance the covariate explains,
+consistent with conditioning helping for genuine operating covariates and failing for the MIMII-DG fan
+noise mixture.</li>
+<li>A leakage-free leave-one-speed-out evaluation with cross-fitted healthy means and cluster-level
+uncertainty, plus a covariate-shuffle control showing the gain requires the true covariate.</li>
 </ul>
 
 <h2>2&nbsp;&nbsp;Related work</h2>
@@ -496,10 +503,12 @@ covariate; the fan, whose attribute is a categorical background-noise mixture, i
 </div>
 
 <h2>7&nbsp;&nbsp;Discussion and limitations</h2>
-<p>The finding is a design lesson: when a normal-only detector must operate across a measured operating
-condition, conditioning on that covariate beats both ignoring it and removing it. The invariance
-result makes the point sharply, since order tracking, the textbook remedy for speed, is actively
-harmful under speed shift for anomaly detection, whereas conditioning on the same tachometer signal
+<p>The lesson is a decision, not a default: when a normal-only detector must operate across a measured
+operating covariate, the right treatment depends on the covariate. For rotation speed the ranking is
+clear, conditioning beats ignoring, which in turn beats removing by order tracking; for an attribute that
+does not explain healthy variation, conditioning should not be used at all. The invariance result makes
+one half of the point sharply, since order tracking, the textbook remedy for speed, is actively harmful
+under speed shift for anomaly detection, whereas conditioning on the same tachometer signal
 helps everywhere.</p>
 <p class="runin"><b>When conditioning helps, and when it cannot.</b> Conditioning interpolates the healthy manifold across the
 operating range; it does not extrapolate beyond the speeds present in training. When the healthy training
