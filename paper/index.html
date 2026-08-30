@@ -91,9 +91,10 @@ normal model on the continuous speed covariate that rotating machinery already m
 tachometer. The realization is deliberately simple: subtract a local speed-conditional normal mean,
 estimated by nearest neighbours in speed, then apply a standard reconstruction-error detector. On MaFaulDa
 (accelerometers, microphone, tachometer, five fault types, 12 to 60&nbsp;Hz), conditioning raises
-pooled ROC-AUC from 0.956 to 0.989 at matched speed and from 0.897 to 0.937 on held-out speeds,
-winning on all five fault types in both regimes; the order-tracking invariance baseline never beats
-the unconditional detector under speed shift. The gain is backbone-agnostic across PCA and
+pooled ROC-AUC from 0.956 to 0.989 at matched speed, and under a leakage-free leave-one-speed-out
+protocol with cross-fitted healthy means from 0.901 to 0.956, against 0.820 for order-tracking
+invariance (paired per-recording $p<10^{-10}$); it wins on all five fault types, and the invariance
+baseline is worse than the unconditional detector on the pooled and per-fault held-out results. The gain is backbone-agnostic across PCA and
 autoencoder detectors, holds across accelerometer and microphone channels, turns multi-channel
 fusion from harmful into beneficial, and collapses when speed labels are permuted (AUC 0.961 to
 0.419). The principle transfers to the MIMII-DG acoustic benchmark, including a discrete operating
@@ -136,7 +137,7 @@ invariance baseline on all five fault types, in both matched-speed and held-out-
 <li>Ablations showing the effect is backbone-agnostic (PCA and autoencoder) and holds across
 accelerometer and microphone channels, where conditioning is also what makes multi-channel fusion
 helpful.</li>
-<li>A covariate-shuffle control establishing that the improvement is causally the speed conditioning,
+<li>A covariate-shuffle control establishing that the improvement requires the true speed labels,
 not an artifact of the pipeline.</li>
 </ul>
 
@@ -161,8 +162,13 @@ signal-to-noise ratio as its causes; DCASE 2022 reframed the task as domain gene
 source and target domains&nbsp;[3,&nbsp;4], and later editions turned to the first-shot
 setting&nbsp;[27]. Strong systems use self-supervised classification of section or attribute labels and
 outlier exposure&nbsp;[28]. Transfer-learning approaches to variable-condition fault diagnosis are
-surveyed in&nbsp;[29]. In all of these the operating condition enters as a discrete source/target label or
-categorical attribute, not as a continuous covariate the model conditions on.</p>
+surveyed in&nbsp;[29]. In these the operating condition enters as a discrete source/target label or
+categorical attribute. Closer to our setting, recent methods do model continuously varying operating
+conditions for normal-only machinery anomaly detection, learning a flowing normal distribution with a
+conditional generative model&nbsp;[40] or a state-space healthy model&nbsp;[41], and continuously indexed
+domain generalization has been applied to supervised diagnosis&nbsp;[42]. These rely on conditional
+generative or state-space models; we ask instead whether a lightweight nonparametric conditional residual
+suffices, and how explicit conditioning compares head-to-head with speed normalization.</p>
 <p class="runin"><b>Speed-invariant fault diagnosis.</b> Order tracking and angular resampling are the classical route to
 speed robustness: computed order tracking&nbsp;[23], the Vold-Kalman tracking filter&nbsp;[25], and
 angular resampling of the raw signal&nbsp;[24], with envelope and spectral-kurtosis analysis isolating
@@ -176,12 +182,12 @@ contextual) anomaly detection dates to Song et&nbsp;al.&nbsp;[10]. Conditional d
 particular normalizing flows&nbsp;[30,&nbsp;31,&nbsp;32] and conditional variational
 autoencoders&nbsp;[34], support conditioning a likelihood on side information, and flow-based detectors
 condition on spatial position for defect localization&nbsp;[7,&nbsp;33]; others condition an autoencoder
-on a discrete machine identity&nbsp;[8]. What is specific here, and what we have not found addressed, is
-conditioning a normal-only machine-fault detector on the <em>measured continuous rotation speed</em> from
-a tachometer and evaluating it under operating-speed shift with a direct head-to-head against
-order-tracking invariance. Our discrete-bin ablation makes the distinction concrete: conditioning on the
-continuous covariate beats conditioning on a binned (discrete) version of it, which is the form the
-closest prior work takes.</p>
+on a discrete machine identity&nbsp;[8]. Building on this line, our contribution is not that continuous
+conditioning is new but a controlled comparison: a direct, matched-backbone study of explicit continuous
+speed-conditioning against order-tracking invariance for normal-only detection under speed shift, realized
+with a deliberately lightweight nonparametric conditional residual rather than a conditional generator.
+Our discrete-bin ablation sharpens the point: conditioning on the continuous covariate beats conditioning
+on a binned (discrete) version of it.</p>
 
 <h2>3&nbsp;&nbsp;Problem formulation</h2>
 <p>We are given a training set of healthy windows $\{(x_i, s_i)\}_{i=1}^n$, where $x_i \in
@@ -225,11 +231,15 @@ subtracted; the reconstruction error of the residual $r = x - m(s)$ is the anoma
 mean-subtraction stage differs from the unconditional baseline.</figcaption>
 </figure>
 
-<p class="runin"><b>Baselines.</b> The unconditional baseline applies the same reconstruction-error detector to $x$ with no
-mean subtraction. The invariance baseline applies it to an order-tracked spectrum, obtained by resampling
-each window from time to shaft angle using the tachometer before the spectrum is taken, so rotation-locked
-components occupy speed-independent order bins. All three families share the same backbone, window, and
-feature dimension, so the comparison isolates the treatment of the covariate.</p>
+<p class="runin"><b>Baselines.</b> The unconditional and conditional detectors use the feature $x$ above, in which each
+fixed-revolution window is resampled to a common length before the spectrum is taken; this normalizes the
+average time-scaling of one window but leaves fixed-frequency structure at its physical position, so $x$ is
+a revolution-normalized spectrum rather than a fully order-tracked one. The invariance baseline instead
+uses an order-tracked spectrum, obtained by resampling each window from time to instantaneous shaft angle
+using the tachometer pulses, so rotation-locked components occupy speed-independent order bins and
+within-window speed fluctuation is also removed. All three families share the same backbone, window, and
+feature dimension; the comparison isolates how the covariate is treated, ranging from revolution
+normalization to full order tracking to explicit conditioning.</p>
 <div class="algobox">
 <div class="h">Algorithm 1: speed-conditional detector</div>
 <ol>
@@ -251,8 +261,10 @@ misalignment, mass imbalance, and underhang and overhang bearing faults), record
 speeds spanning roughly 12&ndash;60&nbsp;Hz. Unless stated otherwise the sensor channel is the
 underhang axial accelerometer.</p>
 <p class="runin"><b>Protocols.</b> Every detector is trained only on healthy windows. We report two regimes. <em>Matched-speed</em>:
-train on a random 60% of healthy windows across all speeds and test the remainder against faults;
-this is the standard operating-range setting. <em>Held-out-speed</em> (leave-one-band-out): partition
+train on a random 60% of healthy windows across all speeds and test the remainder against faults.
+Because MaFaulDa has one healthy recording per speed, this split shares recordings between train and
+test, so we treat it as an in-distribution reference and use the leave-one-speed-out protocol below as
+the leakage-free generalization test. <em>Held-out-speed</em> (leave-one-band-out): partition
 the speed axis into six equal-width bands, train the healthy model on all-but-one band, and test healthy
 and fault windows drawn only from the held-out band; this measures generalization to unseen operating
 speeds. We score with ROC-AUC of healthy-test versus fault, and report matched-speed means over ten
@@ -291,9 +303,11 @@ unconditional baseline under speed shift.</caption>
 <p>Table&nbsp;1 is the main result, and Figure&nbsp;2 summarizes it alongside the backbone and channel
 comparisons. Conditioning is the best detector for every fault type in both
 regimes. The invariance baseline is the more revealing comparison: order tracking sometimes edges the
-unconditional baseline at matched speed, but under speed shift it is consistently <em>worse</em> than
-doing nothing (pooled 0.835 versus 0.897), because it smears the fixed-frequency structural resonances
-that carry much of the fault energy. Under speed shift, removing speed costs 6.2 AUC points relative to
+unconditional baseline at matched speed, but under speed shift it is <em>worse</em> than doing nothing
+on the pooled result (0.835 versus 0.897) and on every per-fault held-out result, because it smears the
+fixed-frequency structural resonances that carry much of the fault energy. At the finer per-band level it
+edges the baseline in the two fastest bands (Figure&nbsp;3a), where order-locked content dominates, but it
+loses on the mean and collapses at low speed. Under speed shift, removing speed costs 6.2 AUC points relative to
 the unconditional detector, while conditioning on the same tachometer signal gains 4.0. The bearing
 faults are near-saturated at matched speed, so the substantial matched-speed gains
 concentrate on the harder misalignment and imbalance faults (for example 0.858&nbsp;&rarr;&nbsp;0.969
@@ -304,6 +318,32 @@ and conditioning 0.989&nbsp;&plusmn;&nbsp;0.002 (pAUC 0.949), with the condition
 [0.981,&nbsp;0.993] clearing the baseline interval [0.941,&nbsp;0.965]. A paired Wilcoxon test rejects
 equality of conditioning against both baseline and invariance in the matched regime
 ($p=0.005$) and across the six held-out bands ($p=0.046$ versus baseline, $p=0.028$ versus invariance).</p>
+
+<p class="runin"><b>Leakage-free generalization.</b> MaFaulDa provides one healthy recording at each speed, so the matched-speed
+split shares recordings between train and test and is an in-distribution reference rather than a
+generalization test. The definitive test is leave-one-speed-out: hold out each healthy recording in turn,
+train the detector on the others with the conditional mean <em>cross-fitted</em> so the held-out recording
+never contributes to its own local mean, and score the held-out healthy windows against faults. Over the
+44 evaluable recordings (Table&nbsp;6), conditioning reaches 0.956 with a cluster-bootstrap interval over
+recordings of [0.941,&nbsp;0.971], against 0.901 for the unconditional baseline and 0.820 for invariance,
+whose intervals sit clear below it; the paired per-recording Wilcoxon test gives $p<10^{-10}$ against both.
+Removing the leakage lowers every number but <em>widens</em> conditioning's margin, over the baseline from
++0.033 at matched speed to +0.055, and over invariance to +0.136. The result therefore strengthens, not
+weakens, under the stricter protocol.</p>
+
+<div class="tablewrap">
+<table class="booktabs">
+<caption><b>Table&nbsp;6.</b> Leakage-free leave-one-speed-out ROC-AUC (44 held-out healthy recordings,
+cross-fitted conditional mean, sklearn AUC), with 95% cluster-bootstrap intervals over recordings.
+Conditioning wins with a separated interval and paired per-recording Wilcoxon $p<10^{-10}$.</caption>
+<thead><tr><th>Detector</th><th>AUC</th><th>95% CI</th></tr></thead>
+<tbody>
+<tr><td>Unconditional baseline</td><td>0.901</td><td>[0.874, 0.928]</td></tr>
+<tr><td>Invariance (order tracking)</td><td>0.820</td><td>[0.777, 0.865]</td></tr>
+<tr><td>Conditioning (ours)</td><td class="best">0.956</td><td class="best">[0.941, 0.971]</td></tr>
+</tbody>
+</table>
+</div>
 
 <figure>
 <img src="figures/fig_summary.png" alt="Summary of results across fault types, backbones, and channels">
@@ -379,7 +419,8 @@ discrete domain label does not.</p>
 <figure>
 <img src="figures/fig_ablations.png" alt="Held-out-speed degradation, k-sensitivity, and discrete-versus-continuous conditioning">
 <figcaption><b>Figure&nbsp;3.</b> (a) Held-out-speed degradation: conditioning holds above the baseline at
-every held-out band while invariance falls below it, most at low speed. (b) Sensitivity to the
+every held-out band except the slowest, where it is within 0.002; invariance falls below the baseline on
+the mean and at low speed, edging above it only in the two fastest bands. (b) Sensitivity to the
 neighbourhood size $k$; the dotted line is the unconditional baseline, which $k=n$ ("all") recovers.
 (c) Continuous nearest-neighbour conditioning exceeds discrete-bin conditioning at every bin count.</figcaption>
 </figure>
@@ -472,13 +513,18 @@ conditioning gains sit at the slowest band, the one edge of the training support
 must extrapolate rather than interpolate. The held-out-speed AUC is a per-band average, each band scored
 independently, and is therefore a stricter per-operating-point measure than the pooled matched-speed AUC
 rather than a directly comparable number.</p>
-<p>The study is validated on the MaFaulDa test rig, where the operating condition is a single clean
-scalar (rotation speed) with a reliable tachometer, with the MIMII-DG results extending it to an acoustic
-benchmark and a discrete covariate. Extending the conditioning to additional continuous covariates (load,
-temperature) and to settings where the covariate is noisier or must be estimated from the signal is future
-work. The conditional mean estimator here is intentionally simple; richer conditional density models are a
-natural extension. Within the studied setting the effect is consistent across fault types, backbones,
-channels, a second dataset, and a causal control.</p>
+<p>Two boundary conditions frame the evidence. First, MaFaulDa provides one steady-state recording at each
+of many distinct speeds, so the held-out-speed protocol measures generalization across operating points
+rather than performance within a single continuously accelerating or decelerating run; validation on
+genuinely time-varying-speed data, such as the University of Ottawa variable-speed bearing and electric-motor
+datasets&nbsp;[43,&nbsp;44], is the natural next step, and load enters there as a second covariate. Second,
+the operating condition here is a single scalar (rotation speed) with a reliable tachometer, and the MIMII-DG
+results extend the principle to an acoustic benchmark and a discrete covariate. Extending the conditioning to
+additional continuous covariates (load, temperature) and to settings where the covariate is noisier or must
+be estimated from the signal is future work. The conditional mean estimator here is intentionally simple;
+richer conditional density models&nbsp;[40,&nbsp;41] are a natural extension. Within the studied setting the
+effect is consistent across fault types, backbones, channels, a second dataset, and a covariate-shuffle
+control.</p>
 
 <h2>References</h2>
 <div class="refs">
@@ -538,6 +584,11 @@ Transactions on Knowledge and Data Engineering, 19(5):631&ndash;645, 2007.</p>
 <p>[37]&nbsp;Y.&nbsp;Sun et&nbsp;al. Out-of-distribution detection with deep nearest neighbors. ICML, 2022. arXiv:2204.06507.</p>
 <p>[38]&nbsp;O.&nbsp;Rippel, P.&nbsp;Mertens, D.&nbsp;Merhof. Modeling the distribution of normal data in pre-trained deep features for anomaly detection. ICPR, 2021. arXiv:2005.14140.</p>
 <p>[39]&nbsp;K.&nbsp;Dohi et&nbsp;al. MIMII DG: sound dataset for malfunctioning industrial machine investigation and inspection for domain generalization task. DCASE Workshop, 2022. arXiv:2205.13879.</p>
+<p>[40]&nbsp;C.&nbsp;Hu, J.&nbsp;Wu, C.&nbsp;Sun, X.&nbsp;Chen, A.&nbsp;K.&nbsp;Nandi, R.&nbsp;Yan. Unified flowing normality learning for rotating machinery anomaly detection in continuous time-varying conditions. IEEE Transactions on Cybernetics, 55(1):221&ndash;233, 2025.</p>
+<p>[41]&nbsp;Z.&nbsp;Liu et&nbsp;al. Anomaly detection of machinery under time-varying operating conditions based on state-space and neural network modeling. Advanced Engineering Informatics, 2025. doi:10.1016/j.aei.2025.103285.</p>
+<p>[42]&nbsp;C.&nbsp;Wang et&nbsp;al. Continuously indexed domain generalization for fault diagnosis under continuously varying working conditions. IEEE Transactions on Instrumentation and Measurement, 74, 2025.</p>
+<p>[43]&nbsp;H.&nbsp;Huang, N.&nbsp;Baddour. Bearing vibration data collected under time-varying rotational speed conditions. Data in Brief, 21:1745&ndash;1749, 2018.</p>
+<p>[44]&nbsp;M.&nbsp;Sehri, P.&nbsp;Dumond. University of Ottawa constant and variable speed electric motor vibration and acoustic fault signature dataset. Data in Brief, 53:110144, 2024.</p>
 </div>
 
 <div class="foot"><b>Data and code.</b> MaFaulDa (SMT/COPPE/UFRJ) and MIMII-DG (Zenodo 10.5281/zenodo.6529888)

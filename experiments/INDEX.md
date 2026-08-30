@@ -16,3 +16,4 @@
 | 012 | 2026-08-29 | Ablations: k-sweep + discrete-bin vs continuous | completed (positive) |
 | 013 | 2026-08-29 | Invariance-arm tuning sweep (OASSL strawman defense) | completed (positive) |
 | 014 | 2026-08-30 | P2: tacho-noise sensitivity + local-Mahalanobis variant | completed (positive) |
+| 016 | 2026-08-30 | Leakage-free LOSO (RunPod) — cross-fitted, cluster-bootstrap | completed (positive) |
