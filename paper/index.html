@@ -88,8 +88,8 @@ vibration and acoustic spectra at different rotation speeds, so faults hide insi
 spread of the normal class. Existing methods either remove speed through order tracking and
 speed-invariant representations, or treat it as a discrete domain label. We instead condition the
 normal model on the continuous speed covariate that rotating machinery already measures through its
-tachometer, realized simply by subtracting a local speed-conditional normal mean, estimated by
-nearest neighbours in speed, before a standard reconstruction-error detector. On MaFaulDa
+tachometer. The realization is deliberately simple: subtract a local speed-conditional normal mean,
+estimated by nearest neighbours in speed, then apply a standard reconstruction-error detector. On MaFaulDa
 (accelerometers, microphone, tachometer, five fault types, 12 to 60&nbsp;Hz), conditioning raises
 pooled ROC-AUC from 0.956 to 0.989 at matched speed and from 0.897 to 0.937 on held-out speeds,
 winning on all five fault types in both regimes; the order-tracking invariance baseline never beats
@@ -105,15 +105,15 @@ attribute. For speed variation, condition, don't remove.</p>
 machinery. In deployment the operative formulation is unsupervised: a detector is trained only on
 data from a healthy machine and must flag any deviation, because labeled fault examples are scarce,
 expensive, and rarely cover the fault that eventually occurs. This normal-only framing is the one
-adopted by the DCASE unsupervised anomalous-sound-detection challenges and by most machine-condition
-autoencoder work.</p>
+adopted by the DCASE (Detection and Classification of Acoustic Scenes and Events) unsupervised
+anomalous-sound-detection challenges&nbsp;[3,&nbsp;4] and by most machine-condition autoencoder work.</p>
 <p>The dominant obstacle in this setting is operating-condition shift. A healthy machine at
 1500&nbsp;rpm and the same machine at 3500&nbsp;rpm produce spectra whose peaks sit at entirely
 different frequencies; a normal-only model that pools across speeds therefore learns a wide,
 diffuse notion of "normal," and a genuine fault at an intermediate speed can score no more
 anomalous than a healthy sample at an unseen speed. The challenge is recognized: the DCASE 2021 and
 2022 tasks explicitly frame speed and load variation as the cause of a <em>domain shift</em> between
-training and test.</p>
+training and test&nbsp;[3,&nbsp;4].</p>
 <p>Two families of remedies exist. <em>Invariance</em> methods remove the operating condition from
 the representation, most commonly by order tracking: resampling the signal against shaft angle so
 that rotation-locked components land in fixed order bins regardless of speed. <em>Discrete-domain</em>
@@ -131,7 +131,7 @@ covariate to a handful of discrete bins. Our contributions are:</p>
 <li>A speed-conditional formulation of normal-only anomaly detection that conditions on the
 continuous tachometer covariate, and a simple realization of it (local speed-conditional mean
 subtraction followed by a standard reconstruction-error detector).</li>
-<li>Evidence on MaFaulDa that conditioning beats both the unconditional baseline and an order-tracking
+<li>Evidence on MaFaulDa&nbsp;[1,&nbsp;2] that conditioning beats both the unconditional baseline and an order-tracking
 invariance baseline on all five fault types, in both matched-speed and held-out-speed regimes.</li>
 <li>Ablations showing the effect is backbone-agnostic (PCA and autoencoder) and holds across
 accelerometer and microphone channels, where conditioning is also what makes multi-channel fusion
@@ -197,9 +197,9 @@ family, which we advocate, models $p(x \mid s)$ directly using the measured cova
 $s$; conditioning uses it.</p>
 
 <h2>4&nbsp;&nbsp;Method</h2>
-<p class="runin"><b>Features.</b> Each recording carries a once-per-revolution tachometer pulse train. We segment it into
-non-overlapping windows of $R$ shaft revolutions and take the log-magnitude spectrum of a chosen sensor
-channel, $x = \log(1 + |\mathcal{F}\{w\}|)$, as the feature. The window speed $s = f_s / \Delta$ is the
+<p class="runin"><b>Features.</b> Each recording carries a once-per-revolution tachometer pulse train. Using the pulses, we
+segment the recording into non-overlapping windows $w$ of $R$ shaft revolutions and take the log-magnitude
+spectrum of a chosen sensor channel, $x = \log(1 + |\mathcal{F}\{w\}|)$, as the feature. The window speed $s = f_s / \Delta$ is the
 sampling rate divided by the median tachometer pulse spacing $\Delta$.</p>
 <p class="runin"><b>Speed-conditional detector.</b> Figure&nbsp;1 shows the pipeline. We estimate the local healthy mean at speed $s$ by a k-nearest-neighbour
 average in the speed variable,
@@ -253,10 +253,12 @@ underhang axial accelerometer.</p>
 <p class="runin"><b>Protocols.</b> Every detector is trained only on healthy windows. We report two regimes. <em>Matched-speed</em>:
 train on a random 60% of healthy windows across all speeds and test the remainder against faults;
 this is the standard operating-range setting. <em>Held-out-speed</em> (leave-one-band-out): partition
-the speed axis into bands, train the healthy model on all-but-one band, and test healthy and fault
-windows drawn only from the held-out band; this measures generalization to unseen operating speeds.
-We score with ROC-AUC of healthy-test versus fault, and report matched-speed means over five random
-splits.</p>
+the speed axis into six equal-width bands, train the healthy model on all-but-one band, and test healthy
+and fault windows drawn only from the held-out band; this measures generalization to unseen operating
+speeds. We score with ROC-AUC of healthy-test versus fault, and report matched-speed means over ten
+random splits. Unless stated otherwise, windows span $R=16$ shaft revolutions resampled to 256 samples
+per revolution ($d=2049$ spectral bins), the conditional mean uses $k=15$ nearest neighbours in speed,
+the PCA retains $K=32$ components, and the autoencoder is a dense 256-32-256 network on the residuals.</p>
 <p class="runin"><b>Controls.</b> Two controls guard the claims. A <em>normal-versus-normal null</em> checks that held-out healthy
 windows score at chance against other held-out healthy windows (AUC&nbsp;&asymp;&nbsp;0.5), ruling
 out that the detector keys on the split. A <em>covariate-shuffle</em> control detrends the
@@ -276,11 +278,11 @@ unconditional baseline under speed shift.</caption>
 <tr><th>Fault type</th><th>Base (M)</th><th>Inv (M)</th><th>Cond (M)</th><th>Base (H)</th><th>Inv (H)</th><th>Cond (H)</th></tr>
 </thead>
 <tbody>
-<tr><td>Horizontal misalignment</td><td>0.854</td><td>0.873</td><td class="best">0.957</td><td>0.689</td><td>0.627</td><td class="best">0.794</td></tr>
-<tr><td>Vertical misalignment</td><td>0.977</td><td>0.953</td><td class="best">0.996</td><td>0.970</td><td>0.872</td><td class="best">0.984</td></tr>
-<tr><td>Imbalance</td><td>0.858</td><td>0.891</td><td class="best">0.969</td><td>0.741</td><td>0.669</td><td class="best">0.852</td></tr>
-<tr><td>Underhang bearing</td><td>0.998</td><td>0.992</td><td class="best">1.000</td><td>0.997</td><td>0.960</td><td class="best">0.999</td></tr>
-<tr><td>Overhang bearing</td><td>0.981</td><td>0.974</td><td class="best">0.995</td><td>0.939</td><td>0.873</td><td class="best">0.955</td></tr>
+<tr><td>Horizontal misalignment</td><td>0.856</td><td>0.872</td><td class="best">0.957</td><td>0.689</td><td>0.627</td><td class="best">0.794</td></tr>
+<tr><td>Vertical misalignment</td><td>0.977</td><td>0.950</td><td class="best">0.996</td><td>0.970</td><td>0.872</td><td class="best">0.984</td></tr>
+<tr><td>Imbalance</td><td>0.860</td><td>0.888</td><td class="best">0.969</td><td>0.741</td><td>0.669</td><td class="best">0.852</td></tr>
+<tr><td>Underhang bearing</td><td>0.999</td><td>0.991</td><td class="best">1.000</td><td>0.997</td><td>0.960</td><td class="best">0.999</td></tr>
+<tr><td>Overhang bearing</td><td>0.981</td><td>0.973</td><td class="best">0.995</td><td>0.939</td><td>0.873</td><td class="best">0.955</td></tr>
 <tr><td><b>Pooled</b></td><td>0.956</td><td>0.954</td><td class="best">0.989</td><td>0.897</td><td>0.835</td><td class="best">0.937</td></tr>
 </tbody>
 </table>
@@ -320,7 +322,7 @@ improvement comes from conditioning, not from backbone capacity. The invariance 
 recover when given the stronger backbone: order tracking under the autoencoder still collapses under
 speed shift (0.809), below the unconditional detector. Nor is this a matter of under-tuning the
 invariance arm. Sweeping its detector, PCA rank from 16 to 256 and autoencoder latent width from 16 to
-64, moves its held-out-speed AUC only within [0.78, 0.837]; the best configuration, 0.837, still sits
+64, moves its held-out-speed AUC only within [0.780, 0.837]; the best configuration, 0.837, still sits
 below the unconditional baseline (0.897), because the limitation is representational, order tracking
 discards the fixed-frequency fault energy, not a matter of detector capacity. Since the strongest recent
 speed-invariance method for this setting, OASSL&nbsp;[9], is not publicly available, we take an
@@ -354,7 +356,7 @@ fusion pay.</p>
 <span class="best">Conditioning</span> wins on every channel; fusion helps only with conditioning.</caption>
 <thead><tr><th>Channel</th><th>Unconditional</th><th>Conditioning</th></tr></thead>
 <tbody>
-<tr><td>Underhang accelerometer</td><td>0.957&nbsp;/&nbsp;0.897</td><td class="best">0.990&nbsp;/&nbsp;0.937</td></tr>
+<tr><td>Underhang accelerometer</td><td>0.956&nbsp;/&nbsp;0.897</td><td class="best">0.989&nbsp;/&nbsp;0.937</td></tr>
 <tr><td>Overhang accelerometer</td><td>0.726&nbsp;/&nbsp;0.591</td><td class="best">0.889&nbsp;/&nbsp;0.952</td></tr>
 <tr><td>Microphone</td><td>0.873&nbsp;/&nbsp;0.658</td><td class="best">0.936&nbsp;/&nbsp;0.716</td></tr>
 <tr><td>Fusion (all three)</td><td>0.940&nbsp;/&nbsp;0.830</td><td class="best">0.992&nbsp;/&nbsp;0.959</td></tr>
@@ -369,7 +371,7 @@ the degenerate limit $k=n$ the conditional mean becomes the global mean and the 
 unconditional baseline to three decimals (0.956&nbsp;/&nbsp;0.897), a built-in consistency check that the
 implementation passes. Panel (c) and Table&nbsp;4 answer the question the novelty claim raises: is a
 continuous covariate necessary, or does any conditioning suffice? Binning the speed into 4, 8, or 16 bins
-and subtracting the per-bin mean already improves over the unconditional baseline (0.955 to 0.980 matched
+and subtracting the per-bin mean already improves over the unconditional baseline (0.956 to 0.980 matched
 as the bins refine), which shows conditioning helps at all; continuous nearest-neighbour conditioning then
 improves further to 0.989, above the finest binning, which shows the continuous covariate carries value a
 discrete domain label does not.</p>
@@ -389,7 +391,7 @@ neighbourhood size $k$; the dotted line is the unconditional baseline, which $k=
 binned version of it, the form the nearest prior work takes.</caption>
 <thead><tr><th>Conditioning</th><th>Matched</th><th>Held-out</th></tr></thead>
 <tbody>
-<tr><td>None (unconditional)</td><td>0.955</td><td>0.897</td></tr>
+<tr><td>None (unconditional)</td><td>0.956</td><td>0.897</td></tr>
 <tr><td>Discrete, 4 bins</td><td>0.969</td><td>0.917</td></tr>
 <tr><td>Discrete, 8 bins</td><td>0.974</td><td>0.928</td></tr>
 <tr><td>Discrete, 16 bins</td><td>0.980</td><td>0.922</td></tr>
@@ -399,15 +401,26 @@ binned version of it, the form the nearest prior work takes.</caption>
 </div>
 
 <p class="runin"><b>Mechanism control.</b> A covariate-shuffle control establishes that the gain requires the true speed labels, not the
-detrending operation alone. On the primary configuration, detrending healthy-test windows with their true
-speeds gives AUC&nbsp;0.961; detrending the same windows with randomly permuted speed labels collapses
-it to 0.419, with the mean healthy score rising accordingly. The normal-versus-normal null sits at 0.50 for all methods, confirming the
+detrending operation alone. On the horizontal-misalignment configuration, detrending healthy-test
+windows with their true speeds gives AUC&nbsp;0.961; detrending the same windows with randomly permuted
+speed labels collapses it to 0.419, with the mean healthy score rising accordingly. The normal-versus-normal null sits at 0.50 for all methods, confirming the
 detectors do not key on the train/test split.</p>
 
+<p class="runin"><b>Robustness to speed error, and the choice of detector.</b> Two further ablations bound the method. First,
+it tolerates an imperfect tachometer. Adding relative Gaussian noise to the measured speed degrades
+matched-speed AUC gracefully, from 0.990 at no noise to 0.982 at 2% error and 0.965 at 10%, and it stays
+above the unconditional baseline (0.956) even at 20% error; since realistic tachometer error is well below
+one percent, the method needs a measured speed, not a precise one. Second, the conditional-mean plus
+reconstruction-error design is what delivers the cross-speed gain. A local Mahalanobis alternative, which
+scores a window against the mean and per-dimension variance of its speed-neighbours, reaches a higher
+matched-speed AUC (0.999) but falls to 0.792 under speed shift, below the reconstruction-error detector
+(0.937): the richer local model overfits the matched regime, while the simpler residual generalizes.</p>
+
 <p class="runin"><b>A second dataset, and the scope of the operating covariate.</b> The principle is not specific to MaFaulDa.
-On MIMII-DG&nbsp;[5], the DCASE&nbsp;2022 domain-generalization benchmark of machine sounds, each machine
+On MIMII-DG&nbsp;[39], the DCASE&nbsp;2022 domain-generalization benchmark of machine sounds, each machine
 provides an operating attribute and a source/target domain split; we condition a log-mel reconstruction
-detector on that attribute and evaluate all five machine types (Table&nbsp;5). Conditioning improves both
+detector on that attribute, using nearest neighbours for continuous attributes and the per-value mean for
+discrete ones, and evaluate all five machine types (Table&nbsp;5). Conditioning improves both
 domains on the four machines whose attribute is a genuine operating covariate: bearing rotation speed,
 gearbox voltage, slider velocity, and the valve operation pattern. The gain is sharpest on the shifted
 target domain: valve target detection, which the unconditional detector drives below chance (0.376)
@@ -449,15 +462,16 @@ harmful under speed shift for anomaly detection, whereas conditioning on the sam
 helps everywhere.</p>
 <p class="runin"><b>When conditioning helps, and when it cannot.</b> Conditioning interpolates the healthy manifold across the
 operating range; it does not extrapolate beyond the speeds present in training. When the healthy training
-data spans the operating range, as in the leave-one-band-out protocol where every held-out band is
+data spans the operating range, as in the leave-one-band-out protocol where every interior held-out band is
 bracketed by training speeds, the local mean at an unseen speed is a reliable interpolant and detection
 improves. When training covers only a narrow band, the nearest-neighbour mean for a distant query is a
 mismatched interpolant and conditioning offers no advantage there. This bounds the method precisely: it
 needs healthy data across the operating envelope, which is the realistic condition for a machine monitored
-over its duty cycle. The effect is visible in the per-band results, where the weakest conditioning gains
-sit at the slowest band, the edge of the training support. We also note that the held-out-speed AUC is a
-per-band average, each band scored independently, and is therefore a stricter per-operating-point measure
-than the pooled matched-speed AUC rather than a directly comparable number.</p>
+over its duty cycle. The effect is visible in the per-band results (Figure&nbsp;3a), where the weakest
+conditioning gains sit at the slowest band, the one edge of the training support where the local mean
+must extrapolate rather than interpolate. The held-out-speed AUC is a per-band average, each band scored
+independently, and is therefore a stricter per-operating-point measure than the pooled matched-speed AUC
+rather than a directly comparable number.</p>
 <p>The study is validated on the MaFaulDa test rig, where the operating condition is a single clean
 scalar (rotation speed) with a reliable tachometer, with the MIMII-DG results extending it to an acoustic
 benchmark and a discrete covariate. Extending the conditioning to additional continuous covariates (load,
@@ -523,12 +537,13 @@ Transactions on Knowledge and Data Engineering, 19(5):631&ndash;645, 2007.</p>
 <p>[36]&nbsp;L.&nbsp;Bergman, N.&nbsp;Cohen, Y.&nbsp;Hoshen. Deep nearest neighbor anomaly detection. arXiv:2002.10445, 2020.</p>
 <p>[37]&nbsp;Y.&nbsp;Sun et&nbsp;al. Out-of-distribution detection with deep nearest neighbors. ICML, 2022. arXiv:2204.06507.</p>
 <p>[38]&nbsp;O.&nbsp;Rippel, P.&nbsp;Mertens, D.&nbsp;Merhof. Modeling the distribution of normal data in pre-trained deep features for anomaly detection. ICPR, 2021. arXiv:2005.14140.</p>
+<p>[39]&nbsp;K.&nbsp;Dohi et&nbsp;al. MIMII DG: sound dataset for malfunctioning industrial machine investigation and inspection for domain generalization task. DCASE Workshop, 2022. arXiv:2205.13879.</p>
 </div>
 
 <div class="foot"><b>Data and code.</b> MaFaulDa (SMT/COPPE/UFRJ) and MIMII-DG (Zenodo 10.5281/zenodo.6529888)
 are public. Code, the experiment registry, and every result artifact are at
 github.com/ApartsinProjects/EngineKnock; all headline numbers derive from a single consolidated
-evaluation artifact.<br>Draft &middot; results reproducible from the EngineKnock experiment registry.</div>
+evaluation artifact.<br>Results reproducible from the EngineKnock experiment registry.</div>
 
 </div>
 </body>
