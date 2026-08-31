@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ignore, Condition, or Remove: Treating a Measured Operating Covariate in Unsupervised Machinery Anomaly Detection</title>
+<title>Ignore, Adjust, or Remove: Handling Changing Speed in Unsupervised Machine Fault Detection</title>
 <style>
 :root{
   --ink:#111418; --soft:#2c3138; --muted:#5a626c; --navy:#14385c; --rule:#d1d4d8; --codebg:#f4f5f7;
@@ -75,30 +75,28 @@ figcaption b{color:var(--ink);}
 <a href="EngineKnock_speed_conditional.docx" download>DOCX</a>
 </div>
 
-<h1 class="title">Ignore, Condition, or Remove:<br>Treating a Measured Operating Covariate in Unsupervised Machinery Anomaly Detection</h1>
+<h1 class="title">Ignore, Adjust, or Remove:<br>Handling Changing Speed in Unsupervised Machine Fault Detection</h1>
 <p class="authors">Alexander Apartsin<sup>1</sup>, Yehudit Aperstein<sup>2</sup></p>
 <p class="affil"><sup>1</sup>School of Computer Science, Faculty of Sciences, Holon Institute of Technology (HIT), Holon, Israel<br>
 <sup>2</sup>Intelligent Systems, Afeka Academic College of Engineering, Tel-Aviv, Israel</p>
 
 <h2 class="abs-h">Abstract</h2>
 <div class="abstract">
-<p>Unsupervised, normal-only anomaly detection for machinery must build a healthy reference that
-changes with operating condition: a healthy machine produces markedly different vibration and acoustic
-spectra at different rotation speeds, so faults hide inside the operating-induced spread of the normal
-class. Given a measured operating covariate, one can ignore it, condition the healthy model on it, or
-remove it with an invariant transform. We show that the right choice is not fixed. On MaFaulDa
-(accelerometers, microphone, tachometer, five fault types, 12 to 60&nbsp;Hz), removing rotation speed by
-order tracking is worse than ignoring it under speed shift, while conditioning on the measured speed beats
-both; yet on the MIMII-DG fan machine, whose attribute is a background-noise mixture rather than an
-operating state, conditioning hurts. We give a lightweight, nonparametric realization of conditioning,
-subtracting a local covariate-conditional healthy mean estimated by nearest neighbours before a standard
-reconstruction-error detector, and a healthy-only criterion for the choice, the cross-validated healthy
-variance the covariate explains. Under a leakage-free leave-one-speed-out protocol with cross-fitted
-healthy means, conditioning reaches ROC-AUC 0.956 against 0.901 for the unconditional detector and 0.820
-for order-tracking invariance (paired per-recording $p<10^{-10}$), winning on all five fault types; the
-result is backbone-agnostic across PCA and autoencoder detectors and holds across accelerometer and
-microphone channels. The message is a decision, not a default: treat a measured covariate by how much
-healthy variation it explains.</p>
+<p>Machines are commonly monitored by training a fault detector on healthy data alone and flagging
+anything unusual. This is hard when the machine runs at varying speed, because a healthy machine vibrates
+and sounds very different across its speed range, so a real fault at one speed can look no stranger than a
+healthy machine at another. When speed changes, a detector can ignore it, adjust its healthy reference for
+the measured speed, or remove the speed by transforming the signal (order tracking, the classical
+approach). We show, on real machinery data, that the right choice is not obvious. Removing speed by order
+tracking is worse than ignoring it once the test speeds differ from training, while adjusting the healthy
+reference for the measured speed works best. The method is deliberately simple: subtract a local healthy
+average matched to the current speed, then flag large leftover deviations, with no deep network. In a
+leakage-free test that holds out whole speeds, adjusting reaches ROC-AUC 0.956, against 0.901 for ignoring
+speed and 0.820 for removing it, and it wins on all five fault types on the MaFaulDa rig. The pattern holds
+on the MIMII-DG machine-sound dataset, except on a machine whose recorded setting was a background-noise
+level rather than a real operating state, where adjusting hurt. The right handling therefore depends on
+whether the condition actually drives the healthy behaviour, and we give a simple healthy-data-only check
+for deciding.</p>
 </div>
 
 <h2>1&nbsp;&nbsp;Introduction</h2>
@@ -115,22 +113,24 @@ diffuse notion of "normal," and a genuine fault at an intermediate speed can sco
 anomalous than a healthy sample at an unseen speed. The challenge is recognized: the DCASE 2021 and
 2022 tasks explicitly frame speed and load variation as the cause of a <em>domain shift</em> between
 training and test&nbsp;[3,&nbsp;4].</p>
-<p>Facing a measured operating covariate, a normal-only detector has three choices. It can
-<em>ignore</em> the covariate and pool a single healthy model across all conditions. It can
-<em>remove</em> the covariate with an invariant transform, most commonly order tracking: resampling the
-signal against shaft angle so that rotation-locked components land in fixed order bins regardless of
-speed. Or it can <em>condition</em> the healthy model on the measured covariate, which rotating machinery
-already provides through its tachometer. Each choice discards or keeps different information: ignoring
-lets the covariate widen the normal class so faults hide in its spread; removing smears any component
-whose frequency is fixed in Hz rather than in shaft orders, and can destroy fault-relevant structure;
-conditioning keeps the covariate but must estimate the healthy response as a function of it.</p>
+<p>When a machine's operating condition is measured, rotation speed here, a normal-only detector has
+three choices for handling it. It can <em>ignore</em> the condition and pool a single healthy model
+across all speeds. It can <em>remove</em> the condition by transforming the signal, most commonly order
+tracking: resampling against shaft angle so that rotation-locked components land in fixed order bins
+regardless of speed. Or it can <em>adjust</em> its healthy model for the measured condition, that is,
+condition on it, which rotating machinery already supplies through its tachometer. Each choice keeps or
+discards different information: ignoring lets speed widen the normal class so faults hide in its spread;
+removing smears any component whose frequency is fixed in Hz rather than in shaft orders, and can destroy
+fault-relevant structure; adjusting keeps the condition but must estimate the healthy response as a
+function of it.</p>
 <p>This paper treats that choice as the object of study rather than assuming an answer. We show on real
 machinery data that the right choice is not fixed. Removing rotation speed by order tracking is worse
-than ignoring it under speed shift, while conditioning on the measured speed beats both; yet conditioning
-on an attribute that is not a genuine operating state, a background-noise mixture, is worse than ignoring
-it. We give a lightweight nonparametric realization of conditioning and a healthy-only criterion for the
-choice: condition when the covariate explains cross-validated healthy variance, and remove only with
-caution, because removal can discard fixed-frequency fault energy. Our contributions are:</p>
+than ignoring it under speed shift, while adjusting for the measured speed beats both; yet adjusting for
+an attribute that is not a genuine operating state, a background-noise setting, is worse than ignoring
+it. We give a lightweight, nonparametric way to adjust, and a healthy-data-only rule for the choice:
+adjust only when the condition actually drives the healthy behaviour, measured by the cross-validated
+variance it explains, and remove only with caution, because removal can discard fixed-frequency fault
+energy. Our contributions are:</p>
 <ul>
 <li>A framing of healthy-reference construction under a measured operating covariate as a three-way
 choice, ignore the covariate, condition the healthy model on it, or remove it with an invariant
