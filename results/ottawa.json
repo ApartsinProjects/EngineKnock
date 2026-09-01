@@ -1,0 +1,55 @@
+{
+  "per_class_auc": {
+    "I": {
+      "ignore": 1.0,
+      "condition": 1.0,
+      "remove": 1.0
+    },
+    "O": {
+      "ignore": 0.985,
+      "condition": 0.998,
+      "remove": 0.992
+    },
+    "B": {
+      "ignore": 1.0,
+      "condition": 1.0,
+      "remove": 1.0
+    },
+    "C": {
+      "ignore": 1.0,
+      "condition": 1.0,
+      "remove": 1.0
+    }
+  },
+  "LOSO": {
+    "ignore": {
+      "mean": 0.952,
+      "ci95": [
+        0.904,
+        0.983
+      ],
+      "n": 12
+    },
+    "condition": {
+      "mean": 0.955,
+      "ci95": [
+        0.905,
+        0.985
+      ],
+      "n": 12
+    },
+    "remove": {
+      "mean": 0.956,
+      "ci95": [
+        0.909,
+        0.987
+      ],
+      "n": 12
+    }
+  },
+  "wilcoxon_p": {
+    "condition_vs_ignore": 0.0341796875,
+    "condition_vs_remove": 0.4697265625,
+    "ignore_vs_remove": 0.00341796875
+  }
+}

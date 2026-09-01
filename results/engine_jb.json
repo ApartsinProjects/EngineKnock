@@ -1,0 +1,13 @@
+{
+  "n_healthy": 44,
+  "n_faulty": 88,
+  "dim": 1028,
+  "rate_hz": 296,
+  "note": "shaker-response, low-rate/short/small; supporting only",
+  "pooled_ignore_auc": 1.0,
+  "pooled_condition_rpm_auc": 1.0,
+  "pooled_condition_humidity_auc": 1.0,
+  "LORO_ignore_auc": 0.705,
+  "LORO_condition_rpm_auc": 0.729,
+  "LORO_folds": 3
+}

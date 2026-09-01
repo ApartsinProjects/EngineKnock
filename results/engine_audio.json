@@ -1,0 +1,95 @@
+{
+  "idle": {
+    "state": "idle state",
+    "normal": "normal_engine_idle",
+    "n_normal": 264,
+    "n_faults": {
+      "no oil_serpentine belt": 107,
+      "power steering combined_no oil": 107,
+      "power steering combined_no oil_serpentine belt": 107,
+      "power steering combined_serpentine belt": 116,
+      "low_oil": 107,
+      "power_steering": 129,
+      "serpentine_belt": 116
+    },
+    "dim": 1025,
+    "pca": {
+      "pooled_auc": 0.985,
+      "per_fault_auc": {
+        "no oil_serpentine belt": 0.998,
+        "power steering combined_no oil": 0.988,
+        "power steering combined_no oil_serpentine belt": 1.0,
+        "power steering combined_serpentine belt": 0.995,
+        "low_oil": 0.971,
+        "power_steering": 0.946,
+        "serpentine_belt": 1.0
+      },
+      "healthy_fpr": 0.237,
+      "per_fault_tpr@99": {
+        "no oil_serpentine belt": 1.0,
+        "power steering combined_no oil": 0.991,
+        "power steering combined_no oil_serpentine belt": 1.0,
+        "power steering combined_serpentine belt": 0.991,
+        "low_oil": 0.963,
+        "power_steering": 0.93,
+        "serpentine_belt": 1.0
+      }
+    },
+    "ae": {
+      "pooled_auc": 0.987,
+      "per_fault_auc": {
+        "no oil_serpentine belt": 0.997,
+        "power steering combined_no oil": 0.985,
+        "power steering combined_no oil_serpentine belt": 0.999,
+        "power steering combined_serpentine belt": 0.997,
+        "low_oil": 0.972,
+        "power_steering": 0.959,
+        "serpentine_belt": 1.0
+      },
+      "healthy_fpr": 0.15,
+      "per_fault_tpr@99": {
+        "no oil_serpentine belt": 0.991,
+        "power steering combined_no oil": 0.972,
+        "power steering combined_no oil_serpentine belt": 1.0,
+        "power steering combined_serpentine belt": 0.991,
+        "low_oil": 0.925,
+        "power_steering": 0.876,
+        "serpentine_belt": 1.0
+      }
+    }
+  },
+  "startup": {
+    "state": "startup state",
+    "normal": "normal_engine_startup",
+    "n_normal": 61,
+    "n_faults": {
+      "bad_ignition": 62,
+      "dead_battery": 57
+    },
+    "dim": 1025,
+    "pca": {
+      "pooled_auc": 0.882,
+      "per_fault_auc": {
+        "bad_ignition": 0.835,
+        "dead_battery": 0.933
+      },
+      "healthy_fpr": 0.789,
+      "per_fault_tpr@99": {
+        "bad_ignition": 1.0,
+        "dead_battery": 1.0
+      }
+    },
+    "ae": {
+      "pooled_auc": 0.892,
+      "per_fault_auc": {
+        "bad_ignition": 0.85,
+        "dead_battery": 0.937
+      },
+      "healthy_fpr": 0.526,
+      "per_fault_tpr@99": {
+        "bad_ignition": 0.984,
+        "dead_battery": 1.0
+      }
+    }
+  }
+}

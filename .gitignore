@@ -24,3 +24,12 @@ paper/_*.docx
 __pycache__/
 *.pyc
 .DS_Store
+*.key
+feats.npz
+kaggle.json
+.kaggle/
+kaggle_token.txt
+*.token
+results/cache_parts/
+results_job-*/
+*.npz

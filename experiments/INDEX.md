@@ -17,3 +17,5 @@
 | 013 | 2026-08-29 | Invariance-arm tuning sweep (OASSL strawman defense) | completed (positive) |
 | 014 | 2026-08-30 | P2: tacho-noise sensitivity + local-Mahalanobis variant | completed (positive) |
 | 016 | 2026-08-30 | Leakage-free LOSO (RunPod) — cross-fitted, cluster-bootstrap | completed (positive) |
+| 017 | 2026-08-31 | [Engine Journal Bearings (real-hardware decision-rule check)](2026-08-31_017_engine_journal_bearings.md) | completed (inconclusive; diagnostic) |
+| 018 | 2026-08-31 | [Kaggle engine audio (confounded; null=0.82)](2026-08-31_018_kaggle_engine_audio.md) | completed (confounded; diagnostic) |

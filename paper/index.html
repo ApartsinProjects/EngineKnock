@@ -232,9 +232,9 @@ deliberately simple: the contribution is the conditioning principle, not a parti
 <figure>
 <img src="figures/fig_method.png" alt="Method schematic: revolution windowing, spectrum, speed-conditional mean subtraction, reconstruction-error score">
 <figcaption><b>Figure&nbsp;1.</b> The speed-conditional detector. A window is formed over whole shaft
-revolutions and reduced to a log-magnitude spectrum $x$ with its measured speed $s$. The
-speed-conditional mean $m(s)$, the average of the $k$ healthy-training windows nearest in speed, is
-subtracted; the reconstruction error of the residual $r = x - m(s)$ is the anomaly score. Only the
+revolutions and reduced to a log-magnitude spectrum <em>x</em> with its measured speed <em>s</em>. The
+speed-conditional mean <em>m</em>(<em>s</em>), the average of the <em>k</em> healthy-training windows nearest in speed, is
+subtracted; the reconstruction error of the residual <em>r</em>&nbsp;=&nbsp;<em>x</em>&nbsp;&minus;&nbsp;<em>m</em>(<em>s</em>) is the anomaly score. Only the
 mean-subtraction stage differs from the unconditional baseline.</figcaption>
 </figure>
 
@@ -332,7 +332,7 @@ generalization test. The definitive test is leave-one-speed-out: hold out each h
 train the detector on the others with the conditional mean <em>cross-fitted</em> so the held-out recording
 never contributes to its own local mean, and score the held-out healthy windows against faults. Over the
 44 evaluable recordings (Table&nbsp;6), conditioning reaches 0.956 with a cluster-bootstrap interval over
-recordings of [0.941,&nbsp;0.971], against 0.901 for the unconditional baseline and 0.820 for invariance,
+recordings of [0.941,&nbsp;0.970], against 0.901 for the unconditional baseline and 0.820 for invariance,
 whose intervals sit clear below it; the paired per-recording Wilcoxon test gives $p<10^{-10}$ against both.
 Removing the leakage lowers every number but <em>widens</em> conditioning's margin, over the baseline from
 +0.033 at matched speed to +0.055, and over invariance to +0.136. The result therefore strengthens, not
@@ -341,16 +341,66 @@ weakens, under the stricter protocol.</p>
 <div class="tablewrap">
 <table class="booktabs">
 <caption><b>Table&nbsp;6.</b> Leakage-free leave-one-speed-out ROC-AUC (44 held-out healthy recordings,
-cross-fitted conditional mean, sklearn AUC), with 95% cluster-bootstrap intervals over recordings.
-Conditioning wins with a separated interval and paired per-recording Wilcoxon $p<10^{-10}$.</caption>
+cross-fitted conditional mean, sklearn AUC), with 95% cluster-bootstrap intervals over recordings. All
+five detectors are computed in one pass on the same recordings and splits. Conditioning wins with a
+separated interval and paired per-recording Wilcoxon p&nbsp;&lt;&nbsp;10<sup>&minus;10</sup>; per-speed
+score normalization does not move the baseline (p&nbsp;=&nbsp;0.70).</caption>
 <thead><tr><th>Detector</th><th>AUC</th><th>95% CI</th></tr></thead>
 <tbody>
-<tr><td>Unconditional baseline</td><td>0.901</td><td>[0.874, 0.928]</td></tr>
-<tr><td>Invariance (order tracking)</td><td>0.820</td><td>[0.777, 0.865]</td></tr>
-<tr><td>Conditioning (ours)</td><td class="best">0.956</td><td class="best">[0.941, 0.971]</td></tr>
+<tr><td>Unconditional baseline</td><td>0.901</td><td>[0.874, 0.927]</td></tr>
+<tr><td>Per-speed score normalization</td><td>0.895</td><td>[0.871, 0.916]</td></tr>
+<tr><td>Invariance (order tracking)</td><td>0.820</td><td>[0.778, 0.864]</td></tr>
+<tr><td>Conditioning (ours)</td><td class="best">0.956</td><td class="best">[0.941, 0.970]</td></tr>
+<tr><td>Conditioning, support-aware</td><td class="best">0.966</td><td class="best">[0.953, 0.978]</td></tr>
 </tbody>
 </table>
 </div>
+
+<p class="runin"><b>Score normalization is not a substitute for conditioning.</b> A natural objection is that
+conditioning's advantage could be reproduced without touching the feature model, simply by normalizing the
+unconditional anomaly score for speed. We test this directly with a per-speed score-normalization control:
+the unconditional score is standardized by a local (nearest-neighbour-in-speed) healthy median and scale,
+which fixes the score margin per speed while leaving the feature space untouched. Under leave-one-speed-out
+it reaches 0.895 [0.871,&nbsp;0.916], statistically indistinguishable from the unconditional baseline
+(paired per-recording Wilcoxon $p=0.70$) and far below conditioning. Normalizing the score does not improve
+separability; the gain lives in the feature space, not the score margin. The operating point makes the same
+point in deployment terms. At a single healthy-calibrated threshold, set on a disjoint calibration split to
+give roughly 2% false alarms and held fixed across speed (averaged over ten seeds), conditioning detects
+78% of faults uniformly across the 12&ndash;61&nbsp;Hz envelope, with a per-band detection coefficient of
+variation of 0.05. Score normalization matches the average detection rate (77%) but not its uniformity: its
+per-band detection swings from 0.58 to 0.98 (coefficient of variation 0.20). A single alarm threshold
+transfers across the operating range only when the covariate is modelled in the feature space
+(Table&nbsp;7).</p>
+
+<div class="tablewrap">
+<table class="booktabs">
+<caption><b>Table&nbsp;7.</b> Operating point at one healthy-calibrated threshold. The threshold is fixed on a
+disjoint healthy calibration split to give roughly 2% false alarms and held constant across speed;
+detection rate (TPR) is averaged over ten seeds, and its across-band coefficient of variation measures how
+uniformly the fixed threshold transfers over the 12&ndash;61&nbsp;Hz envelope. Conditioning gives the
+highest and most uniform detection; per-speed score normalization matches the mean but not the uniformity.</caption>
+<thead><tr><th>Detector</th><th>False-alarm rate</th><th>Detection (TPR)</th><th>Across-band CoV</th></tr></thead>
+<tbody>
+<tr><td>Unconditional baseline</td><td>0.016</td><td>0.615</td><td>0.13</td></tr>
+<tr><td>Per-speed score normalization</td><td>0.025</td><td>0.769</td><td>0.20</td></tr>
+<tr><td>Conditioning (ours)</td><td>0.018</td><td class="best">0.782</td><td class="best">0.05</td></tr>
+<tr><td>Conditioning, support-aware</td><td>0.016</td><td>0.772</td><td>0.05</td></tr>
+</tbody>
+</table>
+</div>
+
+<p class="runin"><b>The gain is spectral, not a level effect.</b> To rule out that conditioning merely exploits
+differences in overall vibration energy, we repeat the leave-one-speed-out comparison on L2-normalized
+spectra, which removes each window's level and leaves only spectral shape. The ordering is preserved and
+sharpens: conditioning 0.916, unconditional 0.787, invariance 0.647. Conditioning stays well ahead on shape
+alone, confirming that it keys on fault-induced spectral structure rather than loudness.</p>
+
+<p class="runin"><b>Support-aware conditioning (ablation).</b> Near the edges of the observed speed range the
+local mean must extrapolate. Blending the local conditional mean toward the global healthy mean by a support
+weight that decays as the query leaves the observed speed density gives a small but consistent improvement,
+0.966 [0.953,&nbsp;0.978] leave-one-speed-out (paired Wilcoxon $p<10^{-11}$ against plain conditioning), with
+the gain concentrated at the speed-range edges (0.997 versus 0.993). We report it as an ablation; the main
+claims do not depend on it.</p>
 
 <figure>
 <img src="figures/fig_summary.png" alt="Summary of results across fault types, backbones, and channels">
@@ -428,7 +478,7 @@ discrete domain label does not.</p>
 <figcaption><b>Figure&nbsp;3.</b> (a) Held-out-speed degradation: conditioning holds above the baseline at
 every held-out band except the slowest, where it is within 0.002; invariance falls below the baseline on
 the mean and at low speed, edging above it only in the two fastest bands. (b) Sensitivity to the
-neighbourhood size $k$; the dotted line is the unconditional baseline, which $k=n$ ("all") recovers.
+neighbourhood size <em>k</em>; the dotted line is the unconditional baseline, which <em>k</em>&nbsp;=&nbsp;<em>n</em> ("all") recovers.
 (c) Continuous nearest-neighbour conditioning exceeds discrete-bin conditioning at every bin count.</figcaption>
 </figure>
 

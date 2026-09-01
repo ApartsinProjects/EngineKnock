@@ -1,0 +1,125 @@
+{
+  "LOSO_auc": {
+    "ignore": {
+      "mean": 0.901,
+      "ci95": [
+        0.874,
+        0.927
+      ],
+      "n": 44
+    },
+    "ignore_qnorm": {
+      "mean": 0.895,
+      "ci95": [
+        0.871,
+        0.916
+      ],
+      "n": 44
+    },
+    "adjust": {
+      "mean": 0.956,
+      "ci95": [
+        0.941,
+        0.97
+      ],
+      "n": 44
+    },
+    "adjust_support": {
+      "mean": 0.966,
+      "ci95": [
+        0.953,
+        0.978
+      ],
+      "n": 44
+    },
+    "remove": {
+      "mean": 0.82,
+      "ci95": [
+        0.778,
+        0.864
+      ],
+      "n": 44
+    }
+  },
+  "wilcoxon_p": {
+    "adjust_vs_ignore": 1.000444171950221e-11,
+    "adjust_vs_remove": 1.1368683772161603e-13,
+    "adjust_support_vs_adjust": 7.958078640513122e-12,
+    "ignore_qnorm_vs_ignore": 0.6986267641268569
+  },
+  "edge_vs_interior": {
+    "adjust": {
+      "interior": 0.955,
+      "edge": 0.993
+    },
+    "adjust_support": {
+      "interior": 0.965,
+      "edge": 0.997
+    }
+  },
+  "threshold_transfer": {
+    "seeds": 10,
+    "bands": [
+      "12-20",
+      "20-28",
+      "28-36",
+      "36-44",
+      "44-52",
+      "52-61"
+    ],
+    "arms": {
+      "ignore": {
+        "overall_fpr": 0.016,
+        "tpr_mean": 0.615,
+        "tpr_by_band": [
+          0.773,
+          0.639,
+          0.607,
+          0.538,
+          0.525,
+          0.606
+        ],
+        "tpr_across_band_cov": 0.132
+      },
+      "ignore_qnorm": {
+        "overall_fpr": 0.025,
+        "tpr_mean": 0.769,
+        "tpr_by_band": [
+          0.595,
+          0.579,
+          0.795,
+          0.819,
+          0.846,
+          0.98
+        ],
+        "tpr_across_band_cov": 0.2
+      },
+      "adjust": {
+        "overall_fpr": 0.018,
+        "tpr_mean": 0.782,
+        "tpr_by_band": [
+          0.854,
+          0.776,
+          0.777,
+          0.791,
+          0.728,
+          0.767
+        ],
+        "tpr_across_band_cov": 0.05
+      },
+      "adjust_support": {
+        "overall_fpr": 0.016,
+        "tpr_mean": 0.772,
+        "tpr_by_band": [
+          0.842,
+          0.76,
+          0.768,
+          0.783,
+          0.71,
+          0.769
+        ],
+        "tpr_across_band_cov": 0.054
+      }
+    }
+  }
+}

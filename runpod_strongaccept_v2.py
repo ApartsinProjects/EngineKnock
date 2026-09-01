@@ -19,8 +19,13 @@ def log(m): print(f"[train] {m}"); sys.stdout.flush()
 def s3():
     import boto3
     k = json.load(open("runpod_storage.key"))
-    cli = boto3.client("s3", endpoint_url=k["endpoint"], aws_access_key_id=k["access_key"],
-                       aws_secret_access_key=k["secret_key"], region_name="us-ca-2")
+    for reg in ("us-ks-2", "us-ca-2", "us-east-1"):
+        cli = boto3.client("s3", endpoint_url=k["endpoint"], aws_access_key_id=k["access_key"],
+                           aws_secret_access_key=k["secret_key"], region_name=reg)
+        try:
+            cli.list_objects_v2(Bucket=k["volume_id"], MaxKeys=1); return cli, k["volume_id"]
+        except Exception:
+            continue
     return cli, k["volume_id"]
 
 
@@ -64,6 +69,9 @@ def extract(stem):
 
 def get_features():
     """Return dict with healthy + fault HZ/REV/ORD, speeds, recording ids. Cached on the volume."""
+    if os.path.exists("feats.npz"):
+        d = np.load("feats.npz"); log("local feats.npz found (skipped S3+extract)")
+        return {k: d[k] for k in d.files}
     cli, vol = s3()
     try:
         log(f"checking volume cache {CACHE_KEY}")
@@ -86,12 +94,18 @@ def get_features():
     return out
 
 
-def knn_mean(Xtr, st, sq, k=15):
-    o = np.argsort(st); ss = st[o]; XX = Xtr[o]; idx = np.searchsorted(ss, sq)
+def knn_mean(Xtr, st, sq, k=15, chunk=2000):
+    """Vectorized chunked kNN-in-speed local mean (sliding in-bounds window -> true k-NN)."""
+    o = np.argsort(st); ss = st[o]; XX = Xtr[o]; n = len(ss); w = min(2 * k, n)
+    idx = np.searchsorted(ss, sq); wof = np.arange(w)
     out = np.empty((len(sq), Xtr.shape[1]), np.float32)
-    for i, q in enumerate(sq):
-        j = idx[i]; lo = max(0, j-k); hi = min(len(ss), j+k); c = np.arange(lo, hi)
-        out[i] = XX[c[np.argsort(np.abs(ss[c]-q))[:k]]].mean(0)
+    for c0 in range(0, len(sq), chunk):
+        c1 = min(c0 + chunk, len(sq)); qs = sq[c0:c1][:, None]
+        start = np.clip(idx[c0:c1] - k, 0, max(0, n - w))[:, None]
+        cand = start + wof                               # (m, w) in-bounds, no duplicates
+        d = np.abs(ss[cand] - qs)
+        sel = np.argsort(d, 1)[:, :k]; nn = np.take_along_axis(cand, sel, 1)
+        out[c0:c1] = XX[nn].mean(1)
     return out
 
 
