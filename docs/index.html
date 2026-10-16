@@ -185,7 +185,11 @@ bearing fault bands&nbsp;[24,&nbsp;26]. Recent unsupervised, variable-speed meth
 <em>invariance</em> goal with order-tracking autoencoders and order-adaptive subspace learning
 (OASSL)&nbsp;[9]. Invariance and conditioning are different design choices: invariance removes the
 covariate, conditioning models the response given the covariate. Our results indicate that for anomaly
-detection under speed shift, removing speed can be worse than not addressing it at all.</p>
+detection under speed shift, removing speed can be worse than not addressing it at all. A recent
+supervised study reports the same direction, finding that the angular and order domains give no advantage
+over the frequency domain for bearing fault detection under varying speed, and leaves the cause
+open&nbsp;[45]; our per-fault analysis supplies the mechanism, that order tracking is blind to faults
+whose signature is fixed in frequency rather than in shaft order.</p>
 <p class="runin"><b>Conditional and contextual anomaly detection.</b> Conditioning a normal model on an auxiliary variable is an established idea: conditional (or
 contextual) anomaly detection dates to Song et&nbsp;al.&nbsp;[10]. Conditional density models, in
 particular normalizing flows&nbsp;[30,&nbsp;31,&nbsp;32] and conditional variational
@@ -694,6 +698,7 @@ Transactions on Knowledge and Data Engineering, 19(5):631&ndash;645, 2007.</p>
 <p>[42]&nbsp;C.&nbsp;Wang et&nbsp;al. Continuously indexed domain generalization for fault diagnosis under continuously varying working conditions. IEEE Transactions on Instrumentation and Measurement, 74, 2025.</p>
 <p>[43]&nbsp;H.&nbsp;Huang, N.&nbsp;Baddour. Bearing vibration data collected under time-varying rotational speed conditions. Data in Brief, 21:1745&ndash;1749, 2018.</p>
 <p>[44]&nbsp;M.&nbsp;Sehri, P.&nbsp;Dumond. University of Ottawa constant and variable speed electric motor vibration and acoustic fault signature dataset. Data in Brief, 53:110144, 2024.</p>
+<p>[45]&nbsp;R.&nbsp;K.&nbsp;Domingues, J.&nbsp;A.&nbsp;Cordioli, D.&nbsp;Silva, D.&nbsp;de&nbsp;Souza&nbsp;Braga, G.&nbsp;Cartagena&nbsp;Miron. Evaluation of the use of the angular domain and order domain in a bearing fault detection framework using deep learning. Annual Conference of the PHM Society, 16(1), 2024. doi:10.36001/phmconf.2024.v16i1.4146.</p>
 </div>
 
 <div class="foot"><b>Data and code.</b> MaFaulDa (SMT/COPPE/UFRJ) and MIMII-DG (Zenodo 10.5281/zenodo.6529888)
