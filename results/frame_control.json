@@ -1,0 +1,25 @@
+{
+  "single_macro_auc": {
+    "HZ": 0.7568,
+    "ORD": 0.7155,
+    "REV": 0.8838
+  },
+  "pairs": {
+    "HZ+ORD": {
+      "fused": 0.8489,
+      "best_single": 0.7568,
+      "gain": 0.0921
+    },
+    "HZ+REV": {
+      "fused": 0.8837,
+      "best_single": 0.8838,
+      "gain": -0.0001
+    },
+    "HZ+HZ": {
+      "fused": 0.7568,
+      "best_single": 0.7568,
+      "gain": 0.0
+    }
+  },
+  "verdict": "PASS physics-framing"
+}

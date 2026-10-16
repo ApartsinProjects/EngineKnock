@@ -1,0 +1,12 @@
+{
+  "n_folds": 44,
+  "n_faults_sub": 8000,
+  "macro_auc": {
+    "HZ": 0.7569,
+    "ORD": 0.7151,
+    "2F": 0.8482
+  },
+  "best_single_frame": 0.7569,
+  "delta_2F": 0.0913,
+  "verdict": "CONFIRM"
+}

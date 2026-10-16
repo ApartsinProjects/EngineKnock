@@ -1,0 +1,7 @@
+{
+  "REV": 0.8848,
+  "ORD": 0.714,
+  "REV+ORD_fused": 0.8407,
+  "gain_over_REV": -0.0442,
+  "method_contribution": "NO (REV-alone >= REV+ORD)"
+}

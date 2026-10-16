@@ -1,0 +1,9 @@
+{"note":"ResearchPivot cycle-2 validated lead: two-frame (HZ+ORD) competing-equivariance fusion, MaFaulDa leave-one-speed-out, ~1600 faults/class, single seed (DIRECTIONAL, needs CI confirmatory run)",
+ "macro_auc":{"HZ":0.757,"ORD":0.715,"2F_fusion":0.848,"delta_2F":0.091,"verdict":"CONFIRM"},
+ "per_fault_auc":{
+   "horizontal_misalignment":{"HZ":0.801,"ORD":0.500,"2F":0.836,"frame":"HZ/structural"},
+   "vertical_misalignment":{"HZ":0.788,"ORD":0.691,"2F":0.877,"frame":"HZ/structural"},
+   "imbalance":{"HZ":0.528,"ORD":0.627,"2F":0.765,"frame":"ORD/rotational"},
+   "underhang_bearing":{"HZ":0.849,"ORD":0.910,"2F":0.899,"frame":"ORD/order-locked"},
+   "overhang_bearing":{"HZ":0.819,"ORD":0.847,"2F":0.864,"frame":"ORD/order-locked"}},
+ "validation":"winning frame flips with fault physics (structural->HZ, rotational/bearing->ORD); fusion catches the union; gain concentrated where frames disagree -> genuine complementarity, not max-operator artifact"}

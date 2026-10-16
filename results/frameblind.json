@@ -1,0 +1,149 @@
+{
+  "frames": {
+    "HZ": {
+      "horizontal misalignment": {
+        "auc": 0.847,
+        "ci95": [
+          0.8,
+          0.888
+        ],
+        "n_folds": 44
+      },
+      "vertical misalignment": {
+        "auc": 0.835,
+        "ci95": [
+          0.77,
+          0.892
+        ],
+        "n_folds": 44
+      },
+      "imbalance": {
+        "auc": 0.564,
+        "ci95": [
+          0.504,
+          0.629
+        ],
+        "n_folds": 44
+      },
+      "underhang bearing": {
+        "auc": 0.897,
+        "ci95": [
+          0.869,
+          0.92
+        ],
+        "n_folds": 44
+      },
+      "overhang bearing": {
+        "auc": 0.864,
+        "ci95": [
+          0.837,
+          0.888
+        ],
+        "n_folds": 44
+      }
+    },
+    "REV": {
+      "horizontal misalignment": {
+        "auc": 0.805,
+        "ci95": [
+          0.739,
+          0.867
+        ],
+        "n_folds": 44
+      },
+      "vertical misalignment": {
+        "auc": 0.991,
+        "ci95": [
+          0.983,
+          0.996
+        ],
+        "n_folds": 44
+      },
+      "imbalance": {
+        "auc": 0.879,
+        "ci95": [
+          0.839,
+          0.916
+        ],
+        "n_folds": 44
+      },
+      "underhang bearing": {
+        "auc": 1.0,
+        "ci95": [
+          1.0,
+          1.0
+        ],
+        "n_folds": 44
+      },
+      "overhang bearing": {
+        "auc": 0.982,
+        "ci95": [
+          0.974,
+          0.989
+        ],
+        "n_folds": 44
+      }
+    },
+    "ORD": {
+      "horizontal misalignment": {
+        "auc": 0.529,
+        "ci95": [
+          0.44,
+          0.621
+        ],
+        "n_folds": 44
+      },
+      "vertical misalignment": {
+        "auc": 0.728,
+        "ci95": [
+          0.644,
+          0.807
+        ],
+        "n_folds": 44
+      },
+      "imbalance": {
+        "auc": 0.662,
+        "ci95": [
+          0.589,
+          0.735
+        ],
+        "n_folds": 44
+      },
+      "underhang bearing": {
+        "auc": 0.959,
+        "ci95": [
+          0.939,
+          0.975
+        ],
+        "n_folds": 44
+      },
+      "overhang bearing": {
+        "auc": 0.893,
+        "ci95": [
+          0.865,
+          0.919
+        ],
+        "n_folds": 44
+      }
+    }
+  },
+  "config": {
+    "protocol": "leakage-free LOSO, speed-conditioned, per-fault ROC-AUC",
+    "fault_subsample": 8000,
+    "ci": "cluster-bootstrap over recordings"
+  },
+  "summary": {
+    "HZ": {
+      "structural_mean_auc": 0.841,
+      "rotational_mean_auc": 0.775
+    },
+    "REV": {
+      "structural_mean_auc": 0.898,
+      "rotational_mean_auc": 0.954
+    },
+    "ORD": {
+      "structural_mean_auc": 0.629,
+      "rotational_mean_auc": 0.838
+    }
+  }
+}
