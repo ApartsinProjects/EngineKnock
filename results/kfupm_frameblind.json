@@ -1,0 +1,31 @@
+{
+  "placebo_matched_speed": {
+    "HZ": {
+      "auc": 0.41,
+      "n": 3
+    },
+    "ORD": {
+      "auc": 0.465,
+      "n": 3
+    }
+  },
+  "imbalance_frame_auc": {
+    "HZ": {
+      "auc": 0.872,
+      "ci95": [
+        0.757,
+        1.0
+      ],
+      "n_folds": 3
+    },
+    "ORD": {
+      "auc": 0.802,
+      "ci95": [
+        0.638,
+        0.992
+      ],
+      "n_folds": 3
+    }
+  },
+  "verdict": "does not replicate"
+}

@@ -33,3 +33,5 @@ kaggle_token.txt
 results/cache_parts/
 results_job-*/
 *.npz
+data/kfupm/
+results/kfupm_feats.npz
